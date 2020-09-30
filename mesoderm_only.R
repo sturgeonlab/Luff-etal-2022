@@ -83,3 +83,4 @@ meso <- SetIdent(meso, cells = aldh.neg, value = "aldh.neg")
 meso <- SetIdent(meso, cells = aldh.pos, value = "aldh.pos")
 aldh.markers <- FindAllMarkers(meso, logfc.threshold = 0.176) #0.176 logfc = 1.5 linear fc
 write.table(aldh.markers, file="aldhmesomarkers.txt", sep="\t")
+ 
