@@ -1,13 +1,14 @@
-## Setting up WNTd dataset
-load("agg.RData")
+library(Seurat)
+## Setting up WNTd-only dataset
+load("CHIR-IWP-before-integration.RData")
 Idents(agg) <- "Cell.ID"
 CH <- SubsetData(agg, subset.name = "Cell.ID", accept.value = "CHIRSB")
 CH <- ScaleData(CH)
 CH <- RunPCA(CH, npcs = 30)
 pdf()
-ElbowPlot(meso)
+ElbowPlot(CH)
 dev.off()
-CH <- FindNeighbors(CH, reduction = "pca", dims = 1:6)
+CH <- FindNeighbors(CH, reduction = "pca", dims = 1:5)
 CH <- FindClusters(CH, resolution = 1)
 CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
 
@@ -41,14 +42,19 @@ CH <- SetIdent(object = CH, cells = meso, value = 'Mesoderm')
 CH[["types"]] <- Idents(CH)
 save(CH, file = "WNTd.RData")
 
-# Fig. S2F
+# Fig. S2Fi,ii
 Idents(CH) <- "types"
-features = c("MESP1", "KDR", "MEST", "HNF1B", "SOX17", "FOXA2",
-  "KRT7", "DLX5", "TFAP2A", "NANOG", "POU5F1", "SOX2")
 my_levels <- c("Mesoderm", "Endoderm", "Ectoderm", "Pluripotent")
 levels(CH) <- my_levels
 pdf()
-DimPlot(CH, reduction = "umap", pt.size = 2, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd"))
+FeaturePlot(CH, features = c("KDR"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE, cols = c("#e7e7e7","#eb0006"))
+DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd"))
+dev.off()
+
+# Fig. S2Fiii
+features = c("SOX2","POU5F1","NANOG","TFAP2A","DLX5","KRT7",
+"FOXA2","SOX17","HNF1B","MEST","KDR","MESP1")
+pdf(width = 8, height = 3.5)
 DotPlot(CH, features = features, cols = c("#f0f0f0", "#f02207"), col.min = 0) + RotatedAxis()
 dev.off()
 
@@ -71,7 +77,7 @@ save(meso, file = "WNTd.mesoderm.RData")
 
 # Fig. 1C
 pdf()
-DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "RNA_snn_res.0.5") + NoLegend()
+DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "RNA_snn_res.0.6") + NoLegend()
 FeaturePlot(meso, features = c("ALDH1A2"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE, cols = c("#e7e7e7","#eb0006"))
 FeaturePlot(meso, features = c("CXCR4"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE, cols = c("#e7e7e7","#eb0006"))
 dev.off()
@@ -83,4 +89,3 @@ meso <- SetIdent(meso, cells = aldh.neg, value = "aldh.neg")
 meso <- SetIdent(meso, cells = aldh.pos, value = "aldh.pos")
 aldh.markers <- FindAllMarkers(meso, logfc.threshold = 0.176) #0.176 logfc = 1.5 linear fc
 write.table(aldh.markers, file="aldhmesomarkers.txt", sep="\t")
- 
