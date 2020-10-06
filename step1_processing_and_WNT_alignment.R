@@ -131,7 +131,7 @@ dev.off()
 
 # Finishing clustering full regression
 agg.integrated <- RunPCA(agg.integrated)
-agg.integrated <- RunUMAP(agg.integrated, reduction = "pca", dims = 1:6)
+agg.integrated <- RunUMAP(agg.integrated, reduction = "pca", dims = 1:5)
 agg.integrated <- FindNeighbors(agg.integrated, dims = 1:6)
 agg.integrated <- FindClusters(agg.integrated, resolution = 0.5)
 pdf()
