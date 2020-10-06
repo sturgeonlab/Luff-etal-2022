@@ -144,8 +144,8 @@ save(agg.integrated, file = "CHIR-IWP-integrated-ccfull.RData")
 # Fig. S2D
 pdf()
 DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "percent.mito")
-DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "nUMI")
-DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "nGene")
+DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "nCount_RNA")
+DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "nFeature_RNA")
 dev.off()
 
 # Fig. 1B
