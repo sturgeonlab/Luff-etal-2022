@@ -1,7 +1,7 @@
 library(Seurat)
-library(dplyr)
-library(Matrix)
+library(viridis)
 library(cowplot)
+library(ggplot2)
 
 # Workflow using V3.2.2
 agg.data <- Read10X(data.dir = "./hg19/")
@@ -23,9 +23,8 @@ IDonly <- ID$Cell.ID
 agg <- AddMetaData(agg, metadata = IDonly, col.name = "Cell.ID")
 
 # Fig. S2A
-library(viridis)
 pdf()
-VlnPlot(agg, group.by = "orig.ident", features = c("nFeature_RNA", "nCount_RNA", "percent.mito"), ncol = 3, pt.size = 0)
+VlnPlot(agg, group.by = "orig.ident", features = c("nFeature_RNA", "nCount_RNA", "percent.mito"), ncol = 3, pt.size = 0, cols = "#20a288")
 dev.off()
 
 # Fig. S2B, left panel
@@ -106,7 +105,7 @@ agg.integrated <- FindClusters(agg.integrated, resolution = 0.5)
 pdf()
 DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75)
 DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "Phase")
-DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID")
+DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID", cols = c("#e22e2f","#2a59b8"), order = "CHIRSB")
 dev.off()
 save(agg.integrated, file = "CHIR-IWP-integrated-cclite.RData")
 
@@ -131,28 +130,32 @@ dev.off()
 
 # Finishing clustering full regression
 agg.integrated <- RunPCA(agg.integrated)
-agg.integrated <- RunUMAP(agg.integrated, reduction = "pca", dims = 1:5)
+agg.integrated <- RunUMAP(agg.integrated, reduction = "pca", dims = 1:6)
 agg.integrated <- FindNeighbors(agg.integrated, dims = 1:6)
 agg.integrated <- FindClusters(agg.integrated, resolution = 0.5)
 pdf()
 DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75)
 DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "Phase")
-DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID")
+DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID", cols = c("#2a59b8","#e22e2f"), order = "CHIRSB")
 dev.off()
 save(agg.integrated, file = "CHIR-IWP-integrated-ccfull.RData")
 
+
+ 
+## Finish plots using either regression
 # Fig. S2D
 pdf()
-DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "percent.mito")
-DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "nCount_RNA")
-DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "nFeature_RNA")
+DimPlot(agg.integrated, reduction = "umap", pt.size = 0.5, group.by = "nFeature_RNA") + NoLegend() + scale_color_viridis(discrete=TRUE)
+DimPlot(agg.integrated, reduction = "umap", pt.size = 0.5, group.by = "nCount_RNA") + NoLegend() + scale_color_viridis(discrete=TRUE)
+DimPlot(agg.integrated, reduction = "umap", pt.size = 0.5, group.by = "percent.mito") + NoLegend() + scale_color_viridis(discrete=TRUE)
 dev.off()
 
 # Fig. 1B
-pdf()
-FeaturePlot(agg.integrated, features = c("KDR"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.5, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
-FeaturePlot(agg.integrated, features = c("GYPA"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.5, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
-FeaturePlot(agg.integrated, features = c("CDX4"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.5, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
+DefaultAssay(agg.integrated) <- "RNA"
+pdf(width = 7, height = 4)
+FeaturePlot(agg.integrated, features = c("KDR"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.25, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
+FeaturePlot(agg.integrated, features = c("GYPA"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.25, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
+FeaturePlot(agg.integrated, features = c("CDX4"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.25, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
 dev.off()
 
 # Fig. S2E
