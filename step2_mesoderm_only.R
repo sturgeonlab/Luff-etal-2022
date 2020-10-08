@@ -1,4 +1,6 @@
 library(Seurat)
+library(viridis)
+
 ## Setting up WNTd-only dataset
 load("CHIR-IWP-before-integration.RData")
 Idents(agg) <- "Cell.ID"
@@ -13,6 +15,7 @@ CH <- FindClusters(CH, resolution = 1)
 CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
 
 # Setting identities so that every cell is identified
+# come back to here following cell cycle regression
 endo2 <- WhichCells(object = CH, expression = APOA1 > 0.1)
 ecto4 <- WhichCells(object = CH, expression = DLGAP5 > 0.1)
 ecto3 <- WhichCells(object = CH, expression = EPCAM > 0.1)
@@ -47,7 +50,7 @@ Idents(CH) <- "types"
 my_levels <- c("Mesoderm", "Endoderm", "Ectoderm", "Pluripotent")
 levels(CH) <- my_levels
 pdf()
-FeaturePlot(CH, features = c("KDR"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE, cols = c("#e7e7e7","#eb0006"))
+FeaturePlot(CH, features = c("KDR"), pt.size = 1.25, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis()
 DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd"))
 dev.off()
 
@@ -61,6 +64,7 @@ dev.off()
 
 
 ## Setting up mesoderm-only WNTd dataset
+# input can be non-regressed or cell cycle regressed (it doesn't affect this downstream analysis)
 meso <- SubsetData(CH, subset.name = "KDR", low.threshold = 0.1)
 meso <- NormalizeData(meso)
 meso <- FindVariableFeatures(meso, selection.method = "vst", nfeatures = 2000)
@@ -89,3 +93,69 @@ meso <- SetIdent(meso, cells = aldh.neg, value = "aldh.neg")
 meso <- SetIdent(meso, cells = aldh.pos, value = "aldh.pos")
 aldh.markers <- FindAllMarkers(meso, logfc.threshold = 0.176) #0.176 logfc = 1.5 linear fc
 write.table(aldh.markers, file="aldhmesomarkers.txt", sep="\t")
+
+
+
+
+
+
+
+
+
+
+## cell cycle regressions not used in publication
+load("CHIR-IWP-before-integration.RData")
+Idents(agg) <- "Cell.ID"
+CH <- SubsetData(agg, subset.name = "Cell.ID", accept.value = "CHIRSB")
+CH <- ScaleData(CH)
+CH <- RunPCA(CH, npcs = 30)
+CH <- FindNeighbors(CH, reduction = "pca", dims = 1:5)
+CH <- FindClusters(CH, resolution = 1)
+CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
+cc.genes <- readLines(con = "regev_lab_cell_cycle_genes.txt")
+s.genes <- cc.genes[1:43]
+g2m.genes <- cc.genes[44:97]
+CH <- RunPCA(CH, features = VariableFeatures(CH), ndims.print = 1:10, nfeatures.print = 10)
+CH <- CellCycleScoring(CH, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
+pdf()
+DimPlot(CH, reduction = "pca")
+dev.off()
+
+## partial
+CH$CC.Difference <- CH$S.Score - CH$G2M.Score
+CH <- ScaleData(CH, vars.to.regress = "CC.Difference", features = rownames(CH))
+CH <- RunPCA(CH, features = VariableFeatures(CH), nfeatures.print = 10)
+CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
+pdf()
+DimPlot(CH, reduction = "pca")
+dev.off()
+CH <- RunPCA(CH)
+CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
+CH <- FindNeighbors(CH, dims = 1:6)
+CH <- FindClusters(CH, resolution = 0.5)
+pdf()
+DimPlot(CH, reduction = "umap", pt.size = 0.75)
+DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
+dev.off()
+# go up to set identities
+save(CH, file = "WNTd-partialcc.RData")
+ 
+## full
+CH <- ScaleData(CH, vars.to.regress = c("S.Score", "G2M.Score"), features = rownames(CH))
+CH <- RunPCA(CH, features = VariableFeatures(CH), nfeatures.print = 10)
+CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
+pdf()
+DimPlot(CH, reduction = "pca")
+dev.off()
+CH <- RunPCA(CH)
+CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
+CH <- FindNeighbors(CH, dims = 1:6)
+CH <- FindClusters(CH, resolution = 0.5)
+pdf()
+DimPlot(CH, reduction = "umap", pt.size = 0.75)
+DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
+DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID")
+dev.off()
+# go up to set identities
+save(CH, file = "WNTd-fullcc.RData")
