@@ -6,10 +6,9 @@ expt <- as.data.frame(t(exp))
 annot <- readRDS(file = "annot_umap.rds") #obtained from "download annotation and UMAP" button
 ty <- CreateSeuratObject(expt, project = "tyser", assay = "RNA")
 id <- read.table("id.txt", header = TRUE, sep ="\t")
-ty2 = ty@meta.data
-ty2["cluster_id"] <- id
-trim <- subset(ty2, select = c("cluster_id"))
-ty <- AddMetaData(ty, trim)
+ids <- id$cluster_id
+ty <- AddMetaData(ty, metadata = ids, col.name = "cluster_id")
+
 
 # process data
 ty <- NormalizeData(ty)
@@ -40,10 +39,40 @@ ty <- RunPCA(ty, features = c(s.genes, g2m.genes))
 pdf()
 DimPlot(ty, reduction = "pca")
 dev.off()
+save(ty, file = "ty-cc.RData")
+
+
+
+## Regress cell cycle from WNTd-only dataset
+load("WNTd.RData") # this dataset was generated from the original dataset prior to integration with WNTi/IWP2 and cell cycle regression
+CH <- RunPCA(CH, features = VariableFeatures(CH), ndims.print = 1:10, nfeatures.print = 10)
+CH <- CellCycleScoring(CH, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
+CH <- ScaleData(CH, vars.to.regress = c("S.Score", "G2M.Score"), features = rownames(CH))
+CH <- RunPCA(CH, features = VariableFeatures(CH), nfeatures.print = 10)
+CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
+save(CH, file = "temp-CH-cc.RData")
+
+pdf()
+DimPlot(CH, reduction = "pca")
+DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
+dev.off()
+
+# Finishing clustering full regression
+CH <- RunPCA(CH)
+CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
+CH <- FindNeighbors(CH, dims = 1:6)
+CH <- FindClusters(CH, resolution = 0.5)
+pdf()
+DimPlot(CH, reduction = "umap", pt.size = 0.75)
+DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
+DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID")
+dev.off()
+save(CH, file = "WNTd-cc.RData")
+
 
 
 ## Integrate hPSC WNTd with Tyser dataset
-load("WNTd.RData")
 ty$exp <- "TY"
 CH$exp <- "CHIRSB"
 aligned.anchors <- FindIntegrationAnchors(object.list = list(ty, as))
