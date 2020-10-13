@@ -9,7 +9,6 @@ id <- read.table("id.txt", header = TRUE, sep ="\t")
 ids <- id$cluster_id
 ty <- AddMetaData(ty, metadata = ids, col.name = "cluster_id")
 
-
 # process data
 ty <- NormalizeData(ty)
 ty <- FindVariableFeatures(ty, selection.method = "vst", nfeatures = 2000)
@@ -23,71 +22,126 @@ ty <- FindNeighbors(ty, dims = 1:7)
 ty <- FindClusters(ty, resolution = 0.5)
 ty <- RunUMAP(ty, dims = 1:7)
 
-
-
-## Regress cell cycle from Tyser dataset
-s.genes <- cc.genes$s.genes
-g2m.genes <- cc.genes$g2m.genes
-ty <- CellCycleScoring(ty, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
-ty <- RunPCA(ty, features = c(s.genes, g2m.genes))
-pdf()
-DimPlot(ty, reduction = "pca")
-dev.off()
-ty <- ScaleData(ty, vars.to.regress = c("S.Score", "G2M.Score"), features = rownames(ty))
-ty <- RunPCA(ty, features = VariableFeatures(ty), nfeatures.print = 10)
-ty <- RunPCA(ty, features = c(s.genes, g2m.genes))
-pdf()
-DimPlot(ty, reduction = "pca")
-dev.off()
-save(ty, file = "ty-cc.RData")
-
-
-
-## Regress cell cycle from WNTd-only dataset
-load("WNTd.RData") # this dataset was generated from the original dataset prior to integration with WNTi/IWP2 and cell cycle regression
-CH <- RunPCA(CH, features = VariableFeatures(CH), ndims.print = 1:10, nfeatures.print = 10)
-CH <- CellCycleScoring(CH, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
-CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
-CH <- ScaleData(CH, vars.to.regress = c("S.Score", "G2M.Score"), features = rownames(CH))
-CH <- RunPCA(CH, features = VariableFeatures(CH), nfeatures.print = 10)
-CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
-save(CH, file = "temp-CH-cc.RData")
-
-pdf()
-DimPlot(CH, reduction = "pca")
-DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
-dev.off()
-
-# Finishing clustering full regression
-CH <- RunPCA(CH)
-CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
-CH <- FindNeighbors(CH, dims = 1:6)
-CH <- FindClusters(CH, resolution = 0.5)
-pdf()
-DimPlot(CH, reduction = "umap", pt.size = 0.75)
-DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
-DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID")
-dev.off()
-save(CH, file = "WNTd-cc.RData")
-
-
-
-## Integrate hPSC WNTd with Tyser dataset
+# Integrate hPSC WNTd with Tyser dataset
+load("WNTd.RData")
 ty$exp <- "TY"
 CH$exp <- "CHIRSB"
-aligned.anchors <- FindIntegrationAnchors(object.list = list(ty, as))
+aligned.anchors <- FindIntegrationAnchors(object.list = list(ty, CH))
 double.aligned <- IntegrateData(anchorset = aligned.anchors, dims = 1:30)
 DefaultAssay(double.aligned) <- "integrated"
 double.aligned <- ScaleData(double.aligned, verbose = FALSE)
-double.aligned <- RunPCA(double.aligned, npcs = 10, verbose = FALSE)
-double.aligned <- FindNeighbors(double.aligned, reduction = "pca", dims = 1:8)
+double.aligned <- RunPCA(double.aligned, npcs = 30, verbose = FALSE)
+pdf()
+ElbowPlot(double.aligned)
+dev.off()
+double.aligned <- FindNeighbors(double.aligned, reduction = "pca", dims = 1:6)
 double.aligned <- FindClusters(double.aligned, resolution = 0.7)
-double.aligned <- RunUMAP(double.aligned, reduction = "pca", dims = 1:8)
+double.aligned <- RunUMAP(double.aligned, reduction = "pca", dims = 1:6)
+
+# replacing NAs so they can be plotted at the back
+ID <- double.aligned@meta.data$cluster_id
+library(tidyr)
+ID.replaced <- replace_na(ID, "WNTd")
+double.aligned <- AddMetaData(double.aligned, metadata = ID.replaced, col.name = "cluster_id")
+
+pdf()
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75)
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "exp")
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "cluster_id",
+order = c("Advanced Mesoderm","Axial Mesoderm","Ectoderm","Emergent Mesoderm","Endoderm",
+"Epiblast","Erythrocytes","Hemogenic Endothelial Progenitors","Nascent Mesoderm","Primitive Streak","YS Mesoderm"))
+dev.off()
+
+save(double.aligned, file = "ty-WNTd-integrataed.RData")
+
+
+
+## Regress cell cycle (partial)
+load("ty-WNTd-integrataed.RData")
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
+double.aligned <- RunPCA(double.aligned, features = VariableFeatures(double.aligned), ndims.print = 1:10, nfeatures.print = 10)
+double.aligned <- CellCycleScoring(double.aligned, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+double.aligned <- RunPCA(double.aligned, features = c(s.genes, g2m.genes))
+pdf()
+DimPlot(double.aligned, reduction = "pca") #before
+dev.off()
+double.aligned$CC.Difference <- double.aligned$S.Score - double.aligned$G2M.Score
+double.aligned <- ScaleData(double.aligned, vars.to.regress = "CC.Difference", features = rownames(double.aligned))
+double.aligned <- RunPCA(double.aligned, features = VariableFeatures(double.aligned), nfeatures.print = 10)
+double.aligned <- RunPCA(double.aligned, features = c(s.genes, g2m.genes))
+pdf()
+DimPlot(double.aligned, reduction = "pca") #after
+dev.off()
+double.aligned <- RunPCA(double.aligned, npcs = 30, verbose = FALSE)
+double.aligned <- FindNeighbors(double.aligned, reduction = "pca", dims = 1:6)
+double.aligned <- FindClusters(double.aligned, resolution = 0.7)
+double.aligned <- RunUMAP(double.aligned, reduction = "pca", dims = 1:6)
+pdf()
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75)
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "Phase")
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "exp")
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "cluster_id",
+order = c("Advanced Mesoderm","Axial Mesoderm","Ectoderm","Emergent Mesoderm","Endoderm",
+"Epiblast","Erythrocytes","Hemogenic Endothelial Progenitors","Nascent Mesoderm","Primitive Streak","YS Mesoderm"))
+dev.off()
+save(double.aligned, file = "ty-WNTd-integrataed-partialcc.RData")
+
+
+
+## Regress cell cycle (full)
+load("ty-WNTd-integrataed.RData")
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
+double.aligned <- CellCycleScoring(double.aligned, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
+double.aligned <- RunPCA(double.aligned, features = c(s.genes, g2m.genes))
+pdf()
+DimPlot(double.aligned, reduction = "pca") #before
+dev.off()
+double.aligned <- ScaleData(double.aligned, vars.to.regress = c("S.Score", "G2M.Score"), features = rownames(double.aligned))
+double.aligned <- RunPCA(double.aligned, features = VariableFeatures(double.aligned), nfeatures.print = 10)
+double.aligned <- RunPCA(double.aligned, features = c(s.genes, g2m.genes))
+pdf()
+DimPlot(double.aligned, reduction = "pca") #after
+dev.off()
+double.aligned <- RunPCA(double.aligned, npcs = 30, verbose = FALSE)
+double.aligned <- FindNeighbors(double.aligned, reduction = "pca", dims = 1:6)
+double.aligned <- FindClusters(double.aligned, resolution = 0.7)
+double.aligned <- RunUMAP(double.aligned, reduction = "pca", dims = 1:6)
+pdf()
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75)
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "Phase")
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "exp")
+DimPlot(double.aligned, reduction = "umap", pt.size = 0.75, group.by = "cluster_id",
+order = c("Advanced Mesoderm","Axial Mesoderm","Ectoderm","Emergent Mesoderm","Endoderm",
+"Epiblast","Erythrocytes","Hemogenic Endothelial Progenitors","Nascent Mesoderm","Primitive Streak","YS Mesoderm"))
+dev.off()
+save(double.aligned, file = "ty-WNTd-integrataed-fullcc.RData")
+
+
+#############################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Fig. S5A & S5Bi
 pdf()
-DimPlot(double.aligned, reduction = "umap", group.by = "exp", pt.size = 1, order = "ty")
-DimPlot(double.aligned, reduction = "umap", group.by = "cluster_id", pt.size = 1, order = "ty")
+DimPlot(double.aligned, reduction = "umap", group.by = "exp", pt.size = 1, order = "ty", cols = c("#3c3c3c","#bbbbbb"))
+DimPlot(double.aligned, reduction = "umap", group.by = "cluster_id", pt.size = 1, order = c("Advanced Mesoderm",
+"Axial Mesoderm","Ectoderm","Emergent Mesoderm","Endoderm","Epiblast","Erythrocytes","Hemogenic Endothelial Progenitors",
+"Nascent Mesoderm","Primitive Streak","YS Mesoderm"), cols = c("#e7e7e7","#de8c00","#000000","#000000","#000000","#000000",
+"#000000","#000000","#000000","#000000","#000000","#000000","#000000"))
 dev.off()
 
 
