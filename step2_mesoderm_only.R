@@ -1,161 +1,238 @@
 library(Seurat)
 library(viridis)
+library(ggplot2)
 
 ## Setting up WNTd-only dataset
 load("CHIR-IWP-before-integration.RData")
 Idents(agg) <- "Cell.ID"
 CH <- SubsetData(agg, subset.name = "Cell.ID", accept.value = "CHIRSB")
-CH <- ScaleData(CH)
-CH <- RunPCA(CH, npcs = 30)
+CH <- ScaleData(CH, features = rownames(CH))
+CH <- RunPCA(CH, npcs = 50)
+CH <- JackStraw(CH, num.replicate = 100, dims = 50)
+CH <- ScoreJackStraw(CH, dims = 1:50)
 pdf()
-ElbowPlot(CH)
+JackStrawPlot(CH, dims = 1:50)
 dev.off()
-CH <- FindNeighbors(CH, reduction = "pca", dims = 1:5)
+CH <- FindNeighbors(CH, reduction = "pca", dims = 1:50)
 CH <- FindClusters(CH, resolution = 1)
-CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
+CH <- RunUMAP(CH, reduction = "pca", dims = 1:50)
+pdf()
+DimPlot(CH, reduction = "umap", pt.size = 1.5)
+dev.off()
 
-# Setting identities so that every cell is identified
-# come back to here following cell cycle regression
-endo2 <- WhichCells(object = CH, expression = APOA1 > 0.1)
-ecto4 <- WhichCells(object = CH, expression = DLGAP5 > 0.1)
-ecto3 <- WhichCells(object = CH, expression = EPCAM > 0.1)
-ecto2 <- WhichCells(object = CH, expression = NPY > 0.1)
-ecto <- WhichCells(object = CH, expression = TFAP2A > 0.1)
-endo <- WhichCells(object = CH, expression = FOXA2 > 0.1)
-pluri <- WhichCells(object = CH, expression = SOX2 > 0.1)
-meso7 <- WhichCells(object = CH, expression = TBX6 > 0.1) #paraxial
-meso4 <- WhichCells(object = CH, expression = PRRX1 > 0.1) #muscle
-meso3 <- WhichCells(object = CH, expression = TMEM88 > 0.1) #cardio
-meso2 <- WhichCells(object = CH, expression = MESP1 > 0.1) #cardio
-meso6 <- WhichCells(object = CH, expression = MEST > 0.1) #generic meso
-meso <- WhichCells(object = CH, expression = KDR > 0.1)
-CH <- SetIdent(object = CH, cells = ecto4, value = 'Ectoderm')
-CH <- SetIdent(object = CH, cells = ecto3, value = 'Ectoderm')
-CH <- SetIdent(object = CH, cells = ecto2, value = 'Ectoderm')
-CH <- SetIdent(object = CH, cells = endo2, value = 'Endoderm')
-CH <- SetIdent(object = CH, cells = meso7, value = 'Mesoderm')
-CH <- SetIdent(object = CH, cells = meso4, value = 'Mesoderm')
-CH <- SetIdent(object = CH, cells = meso3, value = 'Mesoderm')
-CH <- SetIdent(object = CH, cells = endo, value = 'Endoderm')
-CH <- SetIdent(object = CH, cells = ecto, value = 'Ectoderm')
-CH <- SetIdent(object = CH, cells = pluri, value = 'Pluripotent')
-CH <- SetIdent(object = CH, cells = meso6, value = 'Mesoderm')
-CH <- SetIdent(object = CH, cells = meso2, value = 'Mesoderm')
-CH <- SetIdent(object = CH, cells = meso, value = 'Mesoderm')
-CH[["types"]] <- Idents(CH)
-save(CH, file = "WNTd.RData")
+
+## Setting identities so that every cell is labeled
+# (round 1) first determine the threshold for key germ layer markers and find unlabeled cells
+pdf()
+  plot(density(CH@assays$RNA@data['KDR',])) #mesoderm
+  abline(v=0.25)
+  plot(density(CH@assays$RNA@data['FOXA2',])) #endoderm
+  abline(v=0.2)
+  plot(density(CH@assays$RNA@data['TFAP2A',])) #ectoderm
+  abline(v=0.15)
+  plot(density(CH@assays$RNA@data['SOX2',])) #pluripotent
+  abline(v=0.25)
+  dev.off()
+Idents(CH) <- "RNA_snn_res.1"
+  pluri <- WhichCells(object = CH, expression = SOX2 > 0.25)
+  ecto <- WhichCells(object = CH, expression = TFAP2A > 0.15)
+  endo <- WhichCells(object = CH, expression = FOXA2 > 0.2)
+  meso <- WhichCells(object = CH, expression = KDR > 0.25)
+  CH <- SetIdent(CH, cells = pluri, value = 'Pluripotent')
+  CH <- SetIdent(CH, cells = ecto, value = 'Ectoderm')
+  CH <- SetIdent(CH, cells = endo, value = 'Endoderm')
+  CH <- SetIdent(CH, cells = meso, value = 'Mesoderm')
+  CH[["types"]] <- Idents(CH)
+  pdf()
+  DimPlot(CH, reduction = "umap", pt.size = 1.5)
+  dev.off()
+
+
+# run DGE to determine markers for unidentified cells
+markers <- FindAllMarkers(CH, only.pos = TRUE)
+write.table(markers, file="markers.txt", sep="\t")
+
+
+# (round 2) select high scoring markers that are also known to be expressed within a germ layer
+pdf()
+  plot(density(CH@assays$RNA@data['PITX1',])) #cluster 0, posterior mesoderm
+  abline(v=0.3)
+  plot(density(CH@assays$RNA@data['MEST',])) #cluster1, broadly mesoderm
+  abline(v=0.25)
+  plot(density(CH@assays$RNA@data['EPAS1',])) #cluster2, endothelial (mesoderm)
+  abline(v=0.25)
+  plot(density(CH@assays$RNA@data['IHH',])) #cluster3, endoderm
+  abline(v=0.15)
+  plot(density(CH@assays$RNA@data['POU5F1',])) #cluster4, primitive streak
+  abline(v=0.3)
+  plot(density(CH@assays$RNA@data['NODAL',])) #cluster4/6, primitive streak
+  abline(v=0.2)
+  plot(density(CH@assays$RNA@data['DNAH2',])) #cluster9, ectoderm
+  abline(v=0.1)
+  dev.off()
+Idents(CH) <- "RNA_snn_res.1"
+  pluri2 <- WhichCells(CH, expression = POU5F1 > 0.3)
+  pluri3 <- WhichCells(CH, expression = NODAL > 0.2)
+  ecto2 <- WhichCells(CH, expression = DNAH2 > 0.1)
+  endo2 <- WhichCells(CH, expression = IHH > 0.15)
+  meso2 <- WhichCells(CH, expression = PITX1 > 0.3)
+  meso3 <- WhichCells(CH, expression = MEST > 0.25)
+  meso4 <- WhichCells(CH, expression = EPAS1 > 0.25)
+  CH <- SetIdent(CH, cells = c(pluri2,pluri3), value = 'Pluripotent')
+  CH <- SetIdent(CH, cells = ecto2, value = 'Ectoderm')
+  CH <- SetIdent(CH, cells = endo2, value = 'Endoderm')
+  CH <- SetIdent(CH, cells = c(meso2,meso3,meso4), value = 'Mesoderm')
+  #add round 1 labels last to pull cells back into labels using best known germ markers
+  CH[["types"]] <- Idents(CH) #replaces previous
+
+# run DGE to determine markers for unidentified cells
+markers <- FindAllMarkers(CH, only.pos = TRUE)
+write.table(markers, file="markers.txt", sep="\t")
+
+
+# (round3) select high scoring markers that are also known to be expressed within a germ layer
+pdf()
+  plot(density(CH@assays$RNA@data['SSPN',])) #cluster 0, cardiogenic
+  abline(v=0.03)
+  plot(density(CH@assays$RNA@data['SENCR',])) #cluster1, muscle/endo
+  abline(v=0.04)
+  plot(density(CH@assays$RNA@data['HNF1B',])) #cluster3, endoderm
+  abline(v=0.1)
+  plot(density(CH@assays$RNA@data['MYO6',])) #cluster7, cardiogenic
+  abline(v=0.2)
+  plot(density(CH@assays$RNA@data['NELL1',])) #cluster9, ectoderm
+  abline(v=0.02)
+  dev.off()
+Idents(CH) <- "RNA_snn_res.1"
+  meso5 <- WhichCells(CH, expression = SSPN > 0.03)
+  meso6 <- WhichCells(CH, expression = SENCR > 0.04)
+  endo3 <- WhichCells(CH, expression = HNF1B > 0.1)
+  meso7 <- WhichCells(CH, expression = MYO6 > 0.2)
+  ecto3 <- WhichCells(CH, expression = NELL1 > 0.02)
+  CH <- SetIdent(CH, cells = ecto3, value = 'Ectoderm')
+  CH <- SetIdent(CH, cells = endo3, value = 'Endoderm')
+  CH <- SetIdent(CH, cells = c(meso5,meso6,meso7), value = 'Mesoderm')
+  #add round 2 next to pull cells back into labels using more significant markers
+  #add round 1 labels last to pull cells back into labels using best known germ markers
+  CH[["types"]] <- Idents(CH) #replaces previous
+
+
+# few remaining cells did not have enriched markers; therefore they were labeled based on what
+# cluster they were in and the predominate germ layer in that cluster
+# reverse ordering for rounds so that strongest markers are used more frequently
+
+Idents(CH) <- "RNA_snn_res.1"
+  #round3
+  CH <- SetIdent(CH, cells = ecto3, value = 'Ectoderm')
+  CH <- SetIdent(CH, cells = endo3, value = 'Endoderm')
+  CH <- SetIdent(CH, cells = c(pluri2,pluri3), value = 'Pluripotent')
+  CH <- SetIdent(CH, cells = c(meso5,meso6,meso7), value = 'Mesoderm')
+  #round2
+  CH <- SetIdent(CH, cells = ecto2, value = 'Ectoderm')
+  CH <- SetIdent(CH, cells = endo2, value = 'Endoderm')
+  CH <- SetIdent(CH, cells = c(meso2,meso3,meso4), value = 'Mesoderm')
+  #round1
+  CH <- SetIdent(CH, cells = ecto, value = 'Ectoderm')
+  CH <- SetIdent(CH, cells = pluri, value = 'Pluripotent')
+  CH <- SetIdent(CH, cells = endo, value = 'Endoderm')
+  CH <- SetIdent(CH, cells = meso, value = 'Mesoderm')
+  #leftovers
+  meso8 <- WhichCells(CH, idents = c(0,3,5,8,9,12,13))
+  pluri4 <- WhichCells(CH, idents = 1)
+  CH <- SetIdent(CH, cells = pluri4, value = 'Pluripotent')
+  CH <- SetIdent(CH, cells = meso8, value = 'Mesoderm')
+  CH[["types"]] <- Idents(CH)
+
+pdf()
+  DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"))
+  dev.off()
+
+
 
 # Fig. S2Fi,ii
 Idents(CH) <- "types"
 my_levels <- c("Mesoderm", "Endoderm", "Ectoderm", "Pluripotent")
 levels(CH) <- my_levels
 pdf()
-FeaturePlot(CH, features = c("KDR"), pt.size = 1.25, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis()
+FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis()
+FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis() + NoLegend()
 DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd"))
+DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd")) + NoLegend()
 dev.off()
+
+save(CH, file = "WNTd.RData")
+
 
 # Fig. S2Fiii
 features = c("SOX2","POU5F1","NANOG","TFAP2A","DLX5","KRT7",
 "FOXA2","SOX17","HNF1B","MEST","KDR","MESP1")
-pdf(width = 8, height = 3.5)
-DotPlot(CH, features = features, cols = c("#f0f0f0", "#f02207"), col.min = 0) + RotatedAxis()
+pdf(width = 7, height = 2.75)
+DotPlot(CH, features = features, col.min = 0, cols = c("#000000", "#f02207")) + RotatedAxis()
 dev.off()
 
+
+####################################################################
 
 
 ## Setting up mesoderm-only WNTd dataset
-# input can be non-regressed or cell cycle regressed (it doesn't affect this downstream analysis)
-meso <- SubsetData(CH, subset.name = "KDR", low.threshold = 0.1)
+# input can be non-regressed or cell cycle regressed
+meso <- SubsetData(CH, subset.name = "KDR", low.threshold = 0.25)
 meso <- NormalizeData(meso)
 meso <- FindVariableFeatures(meso, selection.method = "vst", nfeatures = 2000)
-all.genes <- rownames(meso)
-meso <- ScaleData(meso, features = all.genes)
+meso <- ScaleData(meso, features = rownames(meso))
 meso <- RunPCA(meso, features = VariableFeatures(object = meso))
+meso <- JackStraw(meso, num.replicate = 100, dims = 50)
+meso <- ScoreJackStraw(meso, dims = 1:50)
 pdf()
-ElbowPlot(meso)
+JackStrawPlot(meso, dims = 1:50)
 dev.off()
-meso <- FindNeighbors(meso, dims = 1:5)
-meso <- FindClusters(meso, resolution = 0.6)
-meso <- RunUMAP(meso, dims = 1:5)
+meso <- FindNeighbors(meso, dims = 1:40)
+meso <- FindClusters(meso)
+meso <- RunUMAP(meso, dims = 1:40)
 save(meso, file = "WNTd.mesoderm.RData")
+
+# determine clustering resolution
+library('clustree')
+meso <- FindClusters(meso, resolution = 0.0)
+  meso <- FindClusters(meso, resolution = 0.1)
+  meso <- FindClusters(meso, resolution = 0.2)
+  meso <- FindClusters(meso, resolution = 0.3)
+  meso <- FindClusters(meso, resolution = 0.4)
+  meso <- FindClusters(meso, resolution = 0.5)
+  meso <- FindClusters(meso, resolution = 0.6)
+  meso <- FindClusters(meso, resolution = 0.7)
+  meso <- FindClusters(meso, resolution = 0.8)
+  meso <- FindClusters(meso, resolution = 0.9)
+  meso <- FindClusters(meso, resolution = 1)
+  meso <- FindClusters(meso, resolution = 1.1)
+  meso <- FindClusters(meso, resolution = 1.2)
+  meso <- FindClusters(meso, resolution = 1.3)
+  meso <- FindClusters(meso, resolution = 1.4)
+  pdf(width = 8, height = 14)
+  clustree(meso, prefix = "RNA_snn_res.", layout = "sugiyama", use_core_edges = FALSE)
+  clustree(meso, prefix = "RNA_snn_res.", layout = "sugiyama", use_core_edges = FALSE, node_colour = "sc3_stability") + scale_color_viridis(option="plasma")
+  dev.off()
+# res1 chosen based on overall sc3 stability of clusters but anywhere
+# between 0.8 and 1 gives nearly identical favorable results
+
 
 # Fig. 1C
 pdf()
-DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "RNA_snn_res.0.6") + NoLegend()
-FeaturePlot(meso, features = c("ALDH1A2"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE, cols = c("#e7e7e7","#eb0006"))
-FeaturePlot(meso, features = c("CXCR4"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE, cols = c("#e7e7e7","#eb0006"))
+DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "RNA_snn_res.1")
+DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "RNA_snn_res.1") + NoLegend()
+FeaturePlot(meso, features = c("ALDH1A2"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1)
+FeaturePlot(meso, features = c("CXCR4"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1)
 dev.off()
 
+
 # Identifying markers of ALDH1A2+ mesodermal cells
+pdf()
+plot(density(CH@assays$RNA@data['ALDH1A2',])) #cluster 0, cardiogenic
+abline(v=0.1)
+dev.off()
 aldh.pos <- WhichCells(meso, expression = ALDH1A2 > 0.1)
 aldh.neg <- WhichCells(meso, expression = ALDH1A2 < 0.1)
 meso <- SetIdent(meso, cells = aldh.neg, value = "aldh.neg")
 meso <- SetIdent(meso, cells = aldh.pos, value = "aldh.pos")
 aldh.markers <- FindAllMarkers(meso, logfc.threshold = 0.176) #0.176 logfc = 1.5 linear fc
 write.table(aldh.markers, file="aldhmesomarkers.txt", sep="\t")
-
-
-
-
-
-
-
-
-
-
-## cell cycle regressions not used in publication
-load("CHIR-IWP-before-integration.RData")
-Idents(agg) <- "Cell.ID"
-CH <- SubsetData(agg, subset.name = "Cell.ID", accept.value = "CHIRSB")
-CH <- ScaleData(CH)
-CH <- RunPCA(CH, npcs = 30)
-CH <- FindNeighbors(CH, reduction = "pca", dims = 1:5)
-CH <- FindClusters(CH, resolution = 1)
-CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
-cc.genes <- readLines(con = "regev_lab_cell_cycle_genes.txt")
-s.genes <- cc.genes[1:43]
-g2m.genes <- cc.genes[44:97]
-CH <- RunPCA(CH, features = VariableFeatures(CH), ndims.print = 1:10, nfeatures.print = 10)
-CH <- CellCycleScoring(CH, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
-CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
-pdf()
-DimPlot(CH, reduction = "pca")
-dev.off()
-
-## partial
-CH$CC.Difference <- CH$S.Score - CH$G2M.Score
-CH <- ScaleData(CH, vars.to.regress = "CC.Difference", features = rownames(CH))
-CH <- RunPCA(CH, features = VariableFeatures(CH), nfeatures.print = 10)
-CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
-pdf()
-DimPlot(CH, reduction = "pca")
-dev.off()
-CH <- RunPCA(CH)
-CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
-CH <- FindNeighbors(CH, dims = 1:6)
-CH <- FindClusters(CH, resolution = 0.5)
-pdf()
-DimPlot(CH, reduction = "umap", pt.size = 0.75)
-DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
-dev.off()
-# go up to set identities
-save(CH, file = "WNTd-partialcc.RData")
- 
-## full
-CH <- ScaleData(CH, vars.to.regress = c("S.Score", "G2M.Score"), features = rownames(CH))
-CH <- RunPCA(CH, features = VariableFeatures(CH), nfeatures.print = 10)
-CH <- RunPCA(CH, features = c(s.genes, g2m.genes))
-pdf()
-DimPlot(CH, reduction = "pca")
-dev.off()
-CH <- RunPCA(CH)
-CH <- RunUMAP(CH, reduction = "pca", dims = 1:6)
-CH <- FindNeighbors(CH, dims = 1:6)
-CH <- FindClusters(CH, resolution = 0.5)
-pdf()
-DimPlot(CH, reduction = "umap", pt.size = 0.75)
-DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Phase")
-DimPlot(CH, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID")
-dev.off()
-# go up to set identities
-save(CH, file = "WNTd-fullcc.RData")
