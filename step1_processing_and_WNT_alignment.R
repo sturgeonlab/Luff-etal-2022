@@ -11,13 +11,15 @@ agg <- subset(agg, subset = nFeature_RNA > 200 & nFeature_RNA < 6000 & percent.m
 agg <- NormalizeData(agg, normalization.method = "LogNormalize", scale.factor = 10000)
 agg <- FindVariableFeatures(agg, selection.method = "vst")
 all.genes <- rownames(agg)
-agg <- ScaleData(agg, features = all.genes)
-agg <- RunPCA(agg, features = VariableFeatures(object = agg))
+agg <- ScaleData(agg, features = all.genes, vars.to.regress = c("percent.mito","nCount_RNA"))
+agg <- RunPCA(agg, features = VariableFeatures(agg), dims = 50)
+agg <- JackStraw(agg, num.replicate = 100, dims = 50)
+agg <- ScoreJackStraw(agg, dims = 1:50)
 pdf()
-ElbowPlot(agg)
+JackStrawPlot(agg, dims = 1:50)
 dev.off()
-agg <- FindNeighbors(agg, dims = 1:6)
-agg <- FindClusters(agg, resolution = 0.5)
+
+# add WNTd (CHIRSB) or WNTi (IWP2) metadata
 ID <- read.table("barcode_IDs.txt", header = TRUE, sep ="\t")
 IDonly <- ID$Cell.ID
 agg <- AddMetaData(agg, metadata = IDonly, col.name = "Cell.ID")
@@ -28,14 +30,16 @@ VlnPlot(agg, group.by = "orig.ident", features = c("nFeature_RNA", "nCount_RNA",
 dev.off()
 
 # Fig. S2B, left panel
-agg <- RunUMAP(agg, dims = 1:6)
+agg <- RunUMAP(agg, dims = 1:50)
 pdf()
 DimPlot(agg, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID", cols = c("#2a59b8","#e22e2f"))
 DimPlot(agg, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID", cols = c("#2a59b8","#e22e2f")) + NoLegend()
 dev.off()
-save(agg, file = "CHIR-IWP-before-integration.RData")
+save(agg, file = "CHIR-IWP-before-integration-2.RData")
+
 
 ####################################################################
+
 ## Integrate CHIRSB & IWP2 samples
 # 22732 features chosen so cell cycle genes will be included for downstream regression
 agg.list <- SplitObject(agg, split.by = "Cell.ID")
@@ -46,17 +50,20 @@ for (i in 1:length(agg.list)) {
 }
 
 reference.list <- agg.list[c("CHIRSB", "IWP2")]
-agg.anchors <- FindIntegrationAnchors(object.list = reference.list, dims = 1:30)
+agg.anchors <- FindIntegrationAnchors(object.list = reference.list, dims = 1:50)
 all_genes <- Reduce(intersect, lapply(reference.list, rownames))
-agg.integrated <- IntegrateData(anchorset = agg.anchors, dims = 1:30, features.to.integrate = all_genes)
+agg.integrated <- IntegrateData(anchorset = agg.anchors, dims = 1:50, features.to.integrate = all_genes)
 DefaultAssay(agg.integrated) <- "integrated"
 agg.integrated <- ScaleData(agg.integrated, verbose = FALSE)
-agg.integrated <- RunPCA(agg.integrated, npcs = 30, verbose = FALSE)
+agg.integrated <- RunPCA(agg.integrated, npcs = 50, verbose = FALSE)
+
+agg.integrated <- JackStraw(agg.integrated, num.replicate = 100, dims = 50)
+agg.integrated <- ScoreJackStraw(agg.integrated, dims = 1:50)
 pdf()
-ElbowPlot(agg.integrated)
+JackStrawPlot(agg.integrated, dims = 1:50)
 dev.off()
-agg.integrated <- RunUMAP(agg.integrated, reduction = "pca", dims = 1:6)
-agg.integrated <- FindNeighbors(agg.integrated, reduction = "pca", dims = 1:6)
+agg.integrated <- RunUMAP(agg.integrated, reduction = "pca", dims = 1:50)
+agg.integrated <- FindNeighbors(agg.integrated, reduction = "pca", dims = 1:50)
 agg.integrated <- FindClusters(agg.integrated, resolution = 0.5)
 
 
@@ -67,15 +74,15 @@ DimPlot(agg.integrated, reduction = "umap", pt.size = 0.75, group.by = "Cell.ID"
 dev.off()
 
 # Save file
-save(agg.integrated, file = "CHIR-IWP-integrated.RData")
+save(agg.integrated, file = "CHIR-IWP-integrated-2.RData")
 
 
 #######################################################################
+
 ## Cell Cycle Regression Setup
 # Assign cell cycle scores
-cc.genes <- readLines(con = "regev_lab_cell_cycle_genes.txt")
-s.genes <- cc.genes[1:43]
-g2m.genes <- cc.genes[44:97]
+s.genes <- cc.genes$s.genes
+g2m.genes <- cc.genes$g2m.genes
 agg.integrated <- RunPCA(agg.integrated, features = VariableFeatures(agg.integrated), ndims.print = 1:10, nfeatures.print = 10)
 agg.integrated <- CellCycleScoring(agg.integrated, s.features = s.genes, g2m.features = g2m.genes, set.ident = TRUE)
 agg.integrated <- RunPCA(agg.integrated, features = c(s.genes, g2m.genes))
@@ -141,7 +148,7 @@ dev.off()
 save(agg.integrated, file = "CHIR-IWP-integrated-ccfull.RData")
 
 
- 
+
 ## Finish plots using either regression
 # Fig. S2D
 pdf()
@@ -153,9 +160,10 @@ dev.off()
 # Fig. 1B
 DefaultAssay(agg.integrated) <- "RNA"
 pdf(width = 7, height = 4)
-FeaturePlot(agg.integrated, features = c("KDR"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.25, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
-FeaturePlot(agg.integrated, features = c("GYPA"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.25, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
-FeaturePlot(agg.integrated, features = c("CDX4"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.25, min.cutoff = 0, cols = c("#f0f0f0", "#f02207"), order = TRUE) + theme(legend.position = "none")
+FeaturePlot(agg.integrated, features = c("KDR"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.5, min.cutoff = 0, cols = c("#000000","#f02207"))
+FeaturePlot(agg.integrated, features = c("KDR"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.5, min.cutoff = 0, order = TRUE, cols = c("#000000","#f02207"))
+FeaturePlot(agg.integrated, features = c("GYPA"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.5, min.cutoff = 0, order = TRUE, cols = c("#000000","#f02207"))
+FeaturePlot(agg.integrated, features = c("CDX4"), split.by = "Cell.ID", reduction = "umap", pt.size = 0.5, min.cutoff = 0, order = TRUE, cols = c("#000000","#f02207"))
 dev.off()
 
 # Fig. S2E
