@@ -143,9 +143,36 @@ dev.off()
 
 
 
+# gene heatmap
+pdf()
+  plot(density(zeng@assays$RNA@data['GFI1B',]))
+  abline(v=0.1)
+  dev.off()
+hpc <- WhichCells(zeng, expression = RUNX1 > 0.1 & CDH5 > 0.2 & PTPRC > 0.1 & ITGA2B > 0.1 & SPN > 0.05 & GFI1B > 0.1)
+hpcv <- as.vector(hpc)
+cellstoplot <- c(orderv,hpcv)
+genes <- read.table("genes-singler.txt", header = FALSE, sep ="\t")
+genesv <- as.vector(genes$V1)
+zeng <- SetIdent(zeng, cells = aec, value = "AEC")
+zeng <- SetIdent(zeng, cells = allhe, value = "HE")
+zeng <- SetIdent(zeng, cells = hpc, value = "HPC")
+zeng[["newestlabels"]] <- Idents(zeng)
+sub2 <- SubsetData(zeng, subset.name = "newestlabels", accept.value = c("HPC","HE","AEC"))
+sub2 <- ScaleData(sub2, features = rownames(sub2))
+
+library(viridis)
+library(ggplot2)
+pdf(width = 9, height = 3)
+DoHeatmap(sub2, draw.lines = FALSE, raster = FALSE, cells = cellstoplot, features = genesv) + theme(axis.text.y = element_text(size = 6)) + scale_fill_viridis()
+dev.off()
+
+
+
+
+
+
 
 ####### functions to be used after loading packages ######
-
 
 CreateSinglerObject = function(counts,annot=NULL,project.name,
                                  min.genes=0,technology='10X',
