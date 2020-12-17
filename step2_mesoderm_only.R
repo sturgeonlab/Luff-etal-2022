@@ -85,6 +85,7 @@ Idents(CH) <- "RNA_snn_res.1"
   #add round 1 labels last to pull cells back into labels using best known germ markers
   CH[["types"]] <- Idents(CH) #replaces previous
 
+
 # run DGE to determine markers for unidentified cells
 markers <- FindAllMarkers(CH, only.pos = TRUE)
 write.table(markers, file="markers.txt", sep="\t")
@@ -143,21 +144,20 @@ Idents(CH) <- "RNA_snn_res.1"
   CH <- SetIdent(CH, cells = meso8, value = 'Mesoderm')
   CH[["types"]] <- Idents(CH)
 
-pdf()
-  DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"))
-  dev.off()
-
-
 
 # Fig. S2Fi,ii
 Idents(CH) <- "types"
 my_levels <- c("Mesoderm", "Endoderm", "Ectoderm", "Pluripotent")
 levels(CH) <- my_levels
 pdf()
-FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis()
-FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis() + NoLegend()
-DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd"))
-DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd")) + NoLegend()
+FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank()) + NoLegend()
+DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd")) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20))
+DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Ectoderm","Endoderm","Pluripotent","Mesoderm"), cols = c("#eb0006","#e5c321","#fb6d92","#6b8ddd")) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + NoLegend()
 dev.off()
 
 save(CH, file = "WNTd.RData")
@@ -167,7 +167,7 @@ save(CH, file = "WNTd.RData")
 features = c("SOX2","POU5F1","NANOG","TFAP2A","DLX5","KRT7",
 "FOXA2","SOX17","HNF1B","MEST","KDR","MESP1")
 pdf(width = 7, height = 2.75)
-DotPlot(CH, features = features, col.min = 0, cols = c("#000000", "#f02207")) + RotatedAxis()
+DotPlot(CH, features = features) + RotatedAxis() + scale_colour_gradient2(low="#003cd5", mid="white", high="#f0260a")
 dev.off()
 
 
@@ -212,22 +212,59 @@ meso <- FindClusters(meso, resolution = 0.0)
   clustree(meso, prefix = "RNA_snn_res.", layout = "sugiyama", use_core_edges = FALSE)
   clustree(meso, prefix = "RNA_snn_res.", layout = "sugiyama", use_core_edges = FALSE, node_colour = "sc3_stability") + scale_color_viridis(option="plasma")
   dev.off()
-# res1 chosen based on overall sc3 stability of clusters but anywhere
 # between 0.8 and 1 gives nearly identical favorable results
 
+Idents(meso) <- "RNA_snn_res.0.8"
+meso <- RenameIdents(meso,'0'='9','1'='5','2'='4','3'='2','4'='6','5'='3',
+'6'='1','7'='12','8'='7','9'='8','10'='10','11'='11')
+meso[["newclusters"]] <- Idents(meso)
 
-# Fig. 1C
+
+# Fig. 1Ci
 pdf()
-DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "RNA_snn_res.1")
-DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "RNA_snn_res.1") + NoLegend()
-FeaturePlot(meso, features = c("ALDH1A2"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1)
-FeaturePlot(meso, features = c("CXCR4"), pt.size = 2, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1)
+DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "newclusters", order = c("12","11","10","9","8","7",
+"6","5","4","3","2","1"), cols = c("#00bfc4","#7cae00","#00b4f0","#de8c00","#00ba38",
+"#b79f00","#619cff","#c77cff","#f8766d","#00c08b","#f564e3","#ff64b0")) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20))
+DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "newclusters", order = c("12","11","10","9","8","7",
+"6","5","4","3","2","1"), cols = c("#00bfc4","#7cae00","#00b4f0","#de8c00","#00ba38",
+"#b79f00","#619cff","#c77cff","#f8766d","#00c08b","#f564e3","#ff64b0")) + NoLegend() +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20))
+dev.off()
+
+
+# Fig. 1Di,iii
+DefaultAssay(meso) <- "RNA"
+pdf()
+FeaturePlot(meso, features = c("ALDH1A2"), reduction = "umap", order = TRUE, pt.size = 2) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+FeaturePlot(meso, features = c("ALDH1A2"), reduction = "umap", order = TRUE, pt.size = 2) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + NoLegend() + ggtitle(element_blank())
+FeaturePlot(meso, features = c("CXCR4"), reduction = "umap", order = TRUE, pt.size = 2) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+FeaturePlot(meso, features = c("CXCR4"), reduction = "umap", order = TRUE, pt.size = 2) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + NoLegend() + ggtitle(element_blank())
+dev.off()
+
+#Idents(meso) <- "newclusters"
+#meso.markers <- FindAllMarkers(meso, logfc.threshold = 0.176)
+#write.table(meso.markers, file="newclusters-mesomarkers.txt", sep="\t")
+#avg <- AverageExpression(meso, assay = "RNA")
+#write.table(avg, file="newclusters-avg.txt", sep="\t")
+
+
+# Fig. 1Dii
+Idents(meso) <- "newclusters"
+my_levels <- c("1","2","3","4","5","6","7","8","9","10","11","12")
+levels(meso) <- my_levels
+pdf(width = 2.5, height = 6)
+VlnPlot(meso, idents = c("4","6","7","10","11"), features = c("ALDH1A2","TEK"), assay = "RNA", log = TRUE, pt.size = 0.25, ncol = 1)
 dev.off()
 
 
 # Identifying markers of ALDH1A2+ mesodermal cells
 pdf()
-plot(density(CH@assays$RNA@data['ALDH1A2',])) #cluster 0, cardiogenic
+plot(density(CH@assays$RNA@data['ALDH1A2',]))
 abline(v=0.1)
 dev.off()
 aldh.pos <- WhichCells(meso, expression = ALDH1A2 > 0.1)
