@@ -145,7 +145,7 @@ Idents(CH) <- "RNA_snn_res.1"
   CH[["types"]] <- Idents(CH)
 
 
-# Fig. S2Fi,ii
+# Fig. S2Ei,ii
 Idents(CH) <- "types"
 my_levels <- c("Mesoderm", "Endoderm", "Ectoderm", "Pluripotent")
 levels(CH) <- my_levels
@@ -163,7 +163,7 @@ dev.off()
 save(CH, file = "WNTd.RData")
 
 
-# Fig. S2Fiii
+# Fig. S2Eiii
 features = c("SOX2","POU5F1","NANOG","TFAP2A","DLX5","KRT7",
 "FOXA2","SOX17","HNF1B","MEST","KDR","MESP1")
 pdf(width = 7, height = 2.75)
@@ -218,6 +218,7 @@ Idents(meso) <- "RNA_snn_res.0.8"
 meso <- RenameIdents(meso,'0'='9','1'='5','2'='4','3'='2','4'='6','5'='3',
 '6'='1','7'='12','8'='7','9'='8','10'='10','11'='11')
 meso[["newclusters"]] <- Idents(meso)
+Idents(meso) <- "newclusters"
 
 
 # Fig. 1Ci
@@ -233,7 +234,7 @@ theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 2
 dev.off()
 
 
-# Fig. 1Di,iii
+# Fig. 1Cii,iv
 DefaultAssay(meso) <- "RNA"
 pdf()
 FeaturePlot(meso, features = c("ALDH1A2"), reduction = "umap", order = TRUE, pt.size = 2) + scale_color_viridis(direction = -1) +
@@ -246,14 +247,7 @@ FeaturePlot(meso, features = c("CXCR4"), reduction = "umap", order = TRUE, pt.si
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + NoLegend() + ggtitle(element_blank())
 dev.off()
 
-#Idents(meso) <- "newclusters"
-#meso.markers <- FindAllMarkers(meso, logfc.threshold = 0.176)
-#write.table(meso.markers, file="newclusters-mesomarkers.txt", sep="\t")
-#avg <- AverageExpression(meso, assay = "RNA")
-#write.table(avg, file="newclusters-avg.txt", sep="\t")
-
-
-# Fig. 1Dii
+# Fig. 1Ciii
 Idents(meso) <- "newclusters"
 my_levels <- c("1","2","3","4","5","6","7","8","9","10","11","12")
 levels(meso) <- my_levels
@@ -261,10 +255,17 @@ pdf(width = 2.5, height = 6)
 VlnPlot(meso, idents = c("4","6","7","10","11"), features = c("ALDH1A2","TEK"), assay = "RNA", log = TRUE, pt.size = 0.25, ncol = 1)
 dev.off()
 
+# Supplementary Table 2A
+avg <- AverageExpression(meso, assay = "RNA")
+write.table(avg, file="newclusters-avg.txt", sep="\t")
 
-# Identifying markers of ALDH1A2+ mesodermal cells
+# Supplementary Table 2B
+meso.markers <- FindAllMarkers(meso, logfc.threshold = 0.176)
+write.table(meso.markers, file="newclusters-mesomarkers.txt", sep="\t")
+
+# Supplementary Table 2C
 pdf()
-plot(density(CH@assays$RNA@data['ALDH1A2',]))
+plot(density(meso@assays$RNA@data['ALDH1A2',]))
 abline(v=0.1)
 dev.off()
 aldh.pos <- WhichCells(meso, expression = ALDH1A2 > 0.1)
@@ -273,3 +274,16 @@ meso <- SetIdent(meso, cells = aldh.neg, value = "aldh.neg")
 meso <- SetIdent(meso, cells = aldh.pos, value = "aldh.pos")
 aldh.markers <- FindAllMarkers(meso, logfc.threshold = 0.176) #0.176 logfc = 1.5 linear fc
 write.table(aldh.markers, file="aldhmesomarkers.txt", sep="\t")
+
+# Supplementary Table 2D
+sub <- SubsetData(meso, subset.name = "newclusters", accept.value = c("1","2","3","4","5","6","10","11","12"))
+pdf()
+plot(density(sub@assays$RNA@data['ALDH1A2',]))
+abline(v=0.15)
+dev.off()
+aldh.pos <- WhichCells(sub, expression = ALDH1A2 > 0.15)
+aldh.neg <- WhichCells(sub, expression = ALDH1A2 < 0.15)
+sub <- SetIdent(sub, cells = aldh.neg, value = "aldh.neg")
+sub <- SetIdent(sub, cells = aldh.pos, value = "aldh.pos")
+aldh.markers <- FindAllMarkers(sub, only.pos = TRUE, logfc.threshold = 0)
+write.table(aldh.markers, file="aldh.sub.markers.txt", sep="\t")
