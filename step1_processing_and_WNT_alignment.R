@@ -117,8 +117,6 @@ dev.off()
 # Supp Table A
 agg.integrated <- SetIdent(agg.integrated, cells = WNTi, value = 'WNTi')
 agg.integrated <- SetIdent(agg.integrated, cells = WNTd, value = 'WNTd')
-markers <- FindAllMarkers(agg.integrated, only.pos = TRUE, logfc = 0.176)
-write.table(markers, file="all-markers.txt", sep="\t")
 pdf()
 plot(density(agg.integrated@assays$RNA@data['CDX4',])) #mesoderm
 abline(v=0.2)
@@ -134,8 +132,8 @@ agg.integrated <- SetIdent(agg.integrated, cells = WNTi.GYPA, value = 'WNTi.GYPA
 agg.integrated[["subsets"]] <- Idents(agg.integrated)
 CDX.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4", ident.2 = "WNTi.GYPA", only.pos = TRUE, logfc = 0.176)
 GYP.markers <- FindMarkers(agg.integrated, ident.2 = "WNTd.CDX4", ident.1 = "WNTi.GYPA", only.pos = TRUE, logfc = 0.176)
-write.table(CDX.markers, file="cdx-markers.txt", sep="\t")
-write.table(GYP.markers, file="gyp-markers.txt", sep="\t")
+write.table(CDX.markers, file="cdx-markers.txt", sep="\t") #Table 1A
+write.table(GYP.markers, file="gyp-markers.txt", sep="\t") #Table 1B
 
 
 # Fig. S2D
