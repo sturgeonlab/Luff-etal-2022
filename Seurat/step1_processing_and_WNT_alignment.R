@@ -114,26 +114,34 @@ FeaturePlot(agg.integrated, cells = WNTd, features = c("CDX4"), reduction = "uma
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
 dev.off()
 
-# Supp Table A
+# Supplementary Table 1
 agg.integrated <- SetIdent(agg.integrated, cells = WNTi, value = 'WNTi')
 agg.integrated <- SetIdent(agg.integrated, cells = WNTd, value = 'WNTd')
 pdf()
-plot(density(agg.integrated@assays$RNA@data['CDX4',])) #mesoderm
+plot(density(agg.integrated@assays$RNA@data['CDX4',]))
 abline(v=0.2)
-plot(density(agg.integrated@assays$RNA@data['GYPA',])) #endoderm
+plot(density(agg.integrated@assays$RNA@data['GYPA',]))
 abline(v=0.1)
-plot(density(agg.integrated@assays$RNA@data['KDR',])) #endoderm
+plot(density(agg.integrated@assays$RNA@data['KDR',]))
 abline(v=0.25)
 dev.off()
 WNTd.CDX4 <- WhichCells(agg.integrated, expression = KDR > 0.25 & CDX4 > 0.2, idents = "WNTd")
+WNTd.CDX4neg <- WhichCells(agg.integrated, expression = KDR > 0.25 & CDX4 < 0.2, idents = "WNTd")
 WNTi.GYPA <- WhichCells(agg.integrated, expression = KDR > 0.25 & GYPA > 0.1, idents = "WNTi")
+WNTi.GYPAneg <- WhichCells(agg.integrated, expression = KDR > 0.25 & GYPA < 0.1, idents = "WNTi")
 agg.integrated <- SetIdent(agg.integrated, cells = WNTd.CDX4, value = 'WNTd.CDX4')
+agg.integrated <- SetIdent(agg.integrated, cells = WNTd.CDX4neg, value = 'WNTd.CDX4neg')
 agg.integrated <- SetIdent(agg.integrated, cells = WNTi.GYPA, value = 'WNTi.GYPA')
+agg.integrated <- SetIdent(agg.integrated, cells = WNTi.GYPAneg, value = 'WNTi.GYPAneg')
 agg.integrated[["subsets"]] <- Idents(agg.integrated)
-CDX.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4", ident.2 = "WNTi.GYPA", only.pos = TRUE, logfc = 0.176)
-GYP.markers <- FindMarkers(agg.integrated, ident.2 = "WNTd.CDX4", ident.1 = "WNTi.GYPA", only.pos = TRUE, logfc = 0.176)
+CDX.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4", ident.2 = "WNTd.CDX4neg", only.pos = TRUE, logfc = 0.176)
+CDXneg.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4neg", ident.2 = "WNTd.CDX4", only.pos = TRUE, logfc = 0.176)
+GYP.markers <- FindMarkers(agg.integrated, ident.1 = "WNTi.GYPA", ident.2 = "WNTi.GYPAneg", only.pos = TRUE, logfc = 0.176)
+GYPneg.markers <- FindMarkers(agg.integrated, ident.1 = "WNTi.GYPAneg", ident.2 = "WNTi.GYPA", only.pos = TRUE, logfc = 0.176)
 write.table(CDX.markers, file="cdx-markers.txt", sep="\t") #Table 1A
+write.table(CDXneg.markers, file="cdxneg-markers.txt", sep="\t") #Table 1A
 write.table(GYP.markers, file="gyp-markers.txt", sep="\t") #Table 1B
+write.table(GYPneg.markers, file="gypneg-markers.txt", sep="\t") #Table 1B
 
 
 # Fig. S2D
