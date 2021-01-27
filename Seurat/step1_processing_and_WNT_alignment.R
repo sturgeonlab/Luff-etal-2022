@@ -143,6 +143,23 @@ write.table(CDXneg.markers, file="cdxneg-markers.txt", sep="\t") #Table 1A
 write.table(GYP.markers, file="gyp-markers.txt", sep="\t") #Table 1B
 write.table(GYPneg.markers, file="gypneg-markers.txt", sep="\t") #Table 1B
 
+CDX.GYP.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4", ident.2 = "WNTi.GYPA", only.pos = TRUE, logfc = 0.176)
+GYP.CDX.markers <- FindMarkers(agg.integrated, ident.1 = "WNTi.GYPA", ident.2 = "WNTd.CDX4", only.pos = TRUE, logfc = 0.176)
+write.table(CDX.GYP.markers, file="cdx-gyp-markers.txt", sep="\t") #Table 1C
+write.table(GYP.CDX.markers, file="gyp-cdx-markers.txt", sep="\t") #Table 1C
+CDX.GYPneg.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4", ident.2 = "WNTi.GYPAneg", only.pos = TRUE, logfc = 0.176)
+GYPneg.CDX.markers <- FindMarkers(agg.integrated, ident.1 = "WNTi.GYPAneg", ident.2 = "WNTd.CDX4", only.pos = TRUE, logfc = 0.176)
+write.table(CDX.GYPneg.markers, file="cdx-gypneg-markers.txt", sep="\t") #Table 1C
+write.table(GYPneg.CDX.markers, file="gypneg-cdx-markers.txt", sep="\t") #Table 1C
+CDXneg.GYP.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4neg", ident.2 = "WNTi.GYPA", only.pos = TRUE, logfc = 0.176)
+GYP.CDXneg.markers <- FindMarkers(agg.integrated, ident.1 = "WNTi.GYPA", ident.2 = "WNTd.CDX4neg", only.pos = TRUE, logfc = 0.176)
+write.table(CDXneg.GYP.markers, file="cdxneg-gyp-markers.txt", sep="\t") #Table 1C
+write.table(GYP.CDXneg.markers, file="gyp-cdxneg-markers.txt", sep="\t") #Table 1C
+CDXneg.GYPneg.markers <- FindMarkers(agg.integrated, ident.1 = "WNTd.CDX4neg", ident.2 = "WNTi.GYPAneg", only.pos = TRUE, logfc = 0.176)
+GYPneg.CDXneg.markers <- FindMarkers(agg.integrated, ident.1 = "WNTi.GYPAneg", ident.2 = "WNTd.CDX4neg", only.pos = TRUE, logfc = 0.176)
+write.table(CDXneg.GYPneg.markers, file="cdxneg-gypneg-markers.txt", sep="\t") #Table 1C
+write.table(GYPneg.CDXneg.markers, file="gypneg-cdxneg-markers.txt", sep="\t") #Table 1C
+
 
 # Fig. S2D
 DefaultAssay(agg.integrated) <- "RNA"
