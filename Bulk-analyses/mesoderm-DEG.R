@@ -50,8 +50,8 @@ res_ordered3 <- bck_res3[order(bck_res3$padj),]
 
 #Save the differential gene expression list to table
 write.csv(res_ordered1, file="CXCR4neg-CXCR4pos.csv")
-write.csv(res_ordered2, file="CD235-CXCR4neg.csv")
-write.csv(res_ordered3, file="CD235-CXCR4pos.csv")
+write.csv(res_ordered2, file="CXCR4neg-CD235a.csv")
+write.csv(res_ordered3, file="CXCR4pos-CD235a.csv")
 
 ### generating PCA plot of WNTd populations and export coordinates
 rld <- rlog(bckCDS_1, blind=FALSE)
