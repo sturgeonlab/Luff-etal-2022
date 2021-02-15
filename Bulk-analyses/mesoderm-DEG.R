@@ -1,8 +1,6 @@
 library("DESeq2")
 library("ggplot2")
 library("limma")
-library("EnhancedVolcano")
-
 
 #forces uniqueness of first column and sets as row names
 bckCountTable <- read.table("mesodermcounts.txt", header=TRUE)
