@@ -13,19 +13,19 @@ rownames(loss)=make.names(x,unique=TRUE)
 head(loss)
 bckCountTable <- loss
 
-table1 <- bckCountTable[,1:6]
-table2a <- bckCountTable[,1:3]
-table2b <- bckCountTable[,7:10]
-table2 <- cbind(table2a,table2b)
-table3 <- bckCountTable[4:10]
+table1 <- bckCountTable[,5:10]
+table2 <- bckCountTable[,1:7]
+table3a <- bckCountTable[,1:4]
+table3b <- bckCountTable[,8:10]
+table3 <- cbind(table3a,table3b)
 
 #making data frame to hold the sample names and the condition types/number of different conditions
 colnames_bck1 <- colnames(table1)
 colnames_bck2 <- colnames(table2)
 colnames_bck3 <- colnames(table3)
 samples1 <- data.frame(row.names = colnames_bck1, condition=as.factor(c(rep("CXCR4.neg",3),rep("CXCR4.pos",3))))
-samples2 <- data.frame(row.names = colnames_bck2, condition=as.factor(c(rep("CD235a.pos",4),rep("CXCR4.neg",3))))
-samples3 <- data.frame(row.names = colnames_bck3, condition=as.factor(c(rep("CD235a.pos",4),rep("CXCR4.pos",3))))
+samples2 <- data.frame(row.names = colnames_bck2, condition=as.factor(c(rep("CD235a.pos",4),rep("CXCR4.pos",3))))
+samples3 <- data.frame(row.names = colnames_bck3, condition=as.factor(c(rep("CD235a.pos",4),rep("CXCR4.neg",3))))
 
 
 #Creates a Summarized Experiment (SE) object using the matrix and design objects
@@ -50,8 +50,8 @@ res_ordered3 <- bck_res3[order(bck_res3$padj),]
 
 #Save the differential gene expression list to table
 write.csv(res_ordered1, file="CXCR4neg-CXCR4pos.csv")
-write.csv(res_ordered2, file="CXCR4neg-CD235a.csv")
-write.csv(res_ordered3, file="CXCR4pos-CD235a.csv")
+write.csv(res_ordered2, file="CXCR4pos-CD235a.csv")
+write.csv(res_ordered3, file="CXCR4neg-CD235a.csv")
 
 ### generating PCA plot of WNTd populations and export coordinates
 rld <- rlog(bckCDS_1, blind=FALSE)
