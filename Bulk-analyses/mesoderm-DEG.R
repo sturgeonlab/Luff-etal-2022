@@ -1,8 +1,7 @@
 library("DESeq2")
 library("ggplot2")
-library("RColorBrewer")
-library("pheatmap")
 library("limma")
+library("EnhancedVolcano")
 
 
 #forces uniqueness of first column and sets as row names
@@ -34,14 +33,14 @@ bckCDS2 <- DESeqDataSetFromMatrix(countData = table2, colData = samples2, design
 bckCDS3 <- DESeqDataSetFromMatrix(countData = table3, colData = samples3, design = ~condition)
 
 #performs the differential expression analysis
-bckCDS_1 <- DESeq(bckCDS1)
-bckCDS_2 <- DESeq(bckCDS2)
-bckCDS_3 <- DESeq(bckCDS3)
+bckCDS1_1 <- DESeq(bckCDS1)
+bckCDS2_2 <- DESeq(bckCDS2)
+bckCDS3_3 <- DESeq(bckCDS3)
 
 # generates differential gene expression list with log2 fold change, standard error, p value, and p adjusted
-bck_res1 <- results(bckCDS_1)
-bck_res2 <- results(bckCDS_2)
-bck_res3 <- results(bckCDS_3)
+bck_res1 <- results(bckCDS1_1)
+bck_res2 <- results(bckCDS2_2)
+bck_res3 <- results(bckCDS3_3)
 
 #order results by p value
 res_ordered1 <- bck_res1[order(bck_res1$padj),]
@@ -52,6 +51,7 @@ res_ordered3 <- bck_res3[order(bck_res3$padj),]
 write.csv(res_ordered1, file="CXCR4neg-CXCR4pos.csv")
 write.csv(res_ordered2, file="CXCR4pos-CD235a.csv")
 write.csv(res_ordered3, file="CXCR4neg-CD235a.csv")
+
 
 ### generating PCA plot of WNTd populations and export coordinates
 rld <- rlog(bckCDS_1, blind=FALSE)
