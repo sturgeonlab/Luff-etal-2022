@@ -13,8 +13,8 @@ attached base packages:
 [1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
-[1] ggplot2_3.3.2     cowplot_1.0.0     viridis_0.5.1     viridisLite_0.3.0
-[5] Seurat_3.2.2     
+[1] clustree_0.4.3    ggraph_2.0.3      ggplot2_3.3.2     cowplot_1.0.0    
+[5] viridis_0.5.1     viridisLite_0.3.0 Seurat_3.2.2     
 
 loaded via a namespace (and not attached):
   [1] nlme_3.1-144          bitops_1.0-6          matrixStats_0.55.0   
@@ -41,14 +41,15 @@ loaded via a namespace (and not attached):
  [64] parallel_3.6.2        gdata_2.18.0          listenv_0.8.0        
  [67] promises_1.1.0        ggrepel_0.8.1         crayon_1.3.4         
  [70] miniUI_0.1.1.1        deldir_0.1-25         lattice_0.20-40      
- [73] splines_3.6.2         tensor_1.5            pillar_1.4.3         
- [76] igraph_1.2.4.2        future.apply_1.4.0    reshape2_1.4.3       
- [79] codetools_0.2-16      leiden_0.3.3          glue_1.4.2           
- [82] lsei_1.2-0            RcppParallel_4.4.4    data.table_1.12.8    
- [85] vctrs_0.3.4           png_0.1-7             httpuv_1.5.2         
- [88] gtable_0.3.0          RANN_2.6.1            purrr_0.3.3          
- [91] polyclip_1.10-0       tidyr_1.0.2           future_1.19.1        
- [94] rsvd_1.0.3            mime_0.9              xtable_1.8-4         
- [97] later_1.0.0           survival_3.1-8        tibble_3.0.4         
-[100] cluster_2.1.0         globals_0.12.5        fitdistrplus_1.0-14  
-[103] ellipsis_0.3.1        ROCR_1.0-7 
+ [73] graphlayouts_0.7.0    splines_3.6.2         tensor_1.5           
+ [76] pillar_1.4.3          igraph_1.2.4.2        future.apply_1.4.0   
+ [79] reshape2_1.4.3        codetools_0.2-16      leiden_0.3.3         
+ [82] glue_1.4.2            lsei_1.2-0            RcppParallel_4.4.4   
+ [85] data.table_1.12.8     tweenr_1.0.1          vctrs_0.3.4          
+ [88] png_0.1-7             httpuv_1.5.2          gtable_0.3.0         
+ [91] RANN_2.6.1            purrr_0.3.3           polyclip_1.10-0      
+ [94] tidyr_1.0.2           future_1.19.1         ggforce_0.3.2        
+ [97] rsvd_1.0.3            mime_0.9              tidygraph_1.2.0      
+[100] xtable_1.8-4          later_1.0.0           survival_3.1-8       
+[103] tibble_3.0.4          cluster_2.1.0         globals_0.12.5       
+[106] fitdistrplus_1.0-14   ellipsis_0.3.1        ROCR_1.0-7 
