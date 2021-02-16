@@ -2,6 +2,7 @@ library(Seurat)
 library(viridis)
 library(cowplot)
 library(ggplot2)
+library(clustree)
 
 # load WNTd/WNTi data from GEO
 CHIRSB.data <- Read10X(data.dir = "./CHIRSB/")
