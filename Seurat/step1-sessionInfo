@@ -29,26 +29,26 @@ loaded via a namespace (and not attached):
  [28] ggridges_0.5.2        pbapply_1.4-2         rappdirs_0.3.1       
  [31] spatstat_1.64-1       goftest_1.2-2         stringr_1.4.0        
  [34] digest_0.6.24         spatstat.utils_1.17-0 pkgconfig_2.0.3      
- [37] htmltools_0.4.0       fastmap_1.0.1         htmlwidgets_1.5.1    
- [40] rlang_0.4.10          shiny_1.4.0           farver_2.0.3         
- [43] generics_0.0.2        zoo_1.8-7             jsonlite_1.7.2       
- [46] ica_1.0-2             gtools_3.8.1          dplyr_1.0.2          
- [49] magrittr_1.5          patchwork_1.0.1       Matrix_1.2-18        
- [52] Rcpp_1.0.3            munsell_0.5.0         abind_1.4-5          
- [55] reticulate_1.14       lifecycle_0.2.0       stringi_1.4.6        
- [58] MASS_7.3-51.5         gplots_3.0.1.2        Rtsne_0.15           
- [61] plyr_1.8.5            grid_3.6.2            parallel_3.6.2       
- [64] gdata_2.18.0          listenv_0.8.0         promises_1.1.0       
- [67] ggrepel_0.8.1         crayon_1.3.4          miniUI_0.1.1.1       
- [70] deldir_0.1-25         lattice_0.20-40       splines_3.6.2        
- [73] tensor_1.5            pillar_1.4.3          igraph_1.2.4.2       
- [76] future.apply_1.4.0    reshape2_1.4.3        codetools_0.2-16     
- [79] leiden_0.3.3          glue_1.4.2            lsei_1.2-0           
- [82] RcppParallel_4.4.4    data.table_1.12.8     vctrs_0.3.4          
- [85] png_0.1-7             httpuv_1.5.2          gtable_0.3.0         
- [88] RANN_2.6.1            purrr_0.3.3           polyclip_1.10-0      
- [91] tidyr_1.0.2           future_1.19.1         rsvd_1.0.3           
- [94] mime_0.9              xtable_1.8-4          RSpectra_0.16-0      
+ [37] htmltools_0.4.0       limma_3.40.6          fastmap_1.0.1        
+ [40] htmlwidgets_1.5.1     rlang_0.4.10          shiny_1.4.0          
+ [43] farver_2.0.3          generics_0.0.2        zoo_1.8-7            
+ [46] jsonlite_1.7.2        ica_1.0-2             gtools_3.8.1         
+ [49] dplyr_1.0.2           magrittr_1.5          patchwork_1.0.1      
+ [52] Matrix_1.2-18         Rcpp_1.0.3            munsell_0.5.0        
+ [55] abind_1.4-5           reticulate_1.14       lifecycle_0.2.0      
+ [58] stringi_1.4.6         MASS_7.3-51.5         gplots_3.0.1.2       
+ [61] Rtsne_0.15            plyr_1.8.5            grid_3.6.2           
+ [64] parallel_3.6.2        gdata_2.18.0          listenv_0.8.0        
+ [67] promises_1.1.0        ggrepel_0.8.1         crayon_1.3.4         
+ [70] miniUI_0.1.1.1        deldir_0.1-25         lattice_0.20-40      
+ [73] splines_3.6.2         tensor_1.5            pillar_1.4.3         
+ [76] igraph_1.2.4.2        future.apply_1.4.0    reshape2_1.4.3       
+ [79] codetools_0.2-16      leiden_0.3.3          glue_1.4.2           
+ [82] lsei_1.2-0            RcppParallel_4.4.4    data.table_1.12.8    
+ [85] vctrs_0.3.4           png_0.1-7             httpuv_1.5.2         
+ [88] gtable_0.3.0          RANN_2.6.1            purrr_0.3.3          
+ [91] polyclip_1.10-0       tidyr_1.0.2           future_1.19.1        
+ [94] rsvd_1.0.3            mime_0.9              xtable_1.8-4         
  [97] later_1.0.0           survival_3.1-8        tibble_3.0.4         
 [100] cluster_2.1.0         globals_0.12.5        fitdistrplus_1.0-14  
-[103] ellipsis_0.3.1        ROCR_1.0-7
+[103] ellipsis_0.3.1        ROCR_1.0-7 
