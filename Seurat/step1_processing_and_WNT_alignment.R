@@ -13,17 +13,16 @@ CHIRSB.IWP2 <- merge(CHIRSB,IWP2, project = "CHIRSB.IWP2")
 CHIRSB.IWP2[["percent.mito"]] <- PercentageFeatureSet(CHIRSB.IWP2, pattern = "^MT-")
 CHIRSB.IWP2[["merged"]] <- "CHIRSB.IWP2"
 
-# Fig. S2A
+# Supplemental Fig. 2A
 pdf()
-VlnPlot(CHIRSB.IWP2, group.by = "orig.ident", features = c("nFeature_RNA", "nCount_RNA", "percent.mito"), ncol = 3, pt.size = 0.1, cols = c("#20a288","#20a288","#20a288"))
 VlnPlot(CHIRSB.IWP2, group.by = "merged", features = c("nFeature_RNA", "nCount_RNA", "percent.mito"), ncol = 3, pt.size = 0.1, cols = c("#20a288","#20a288","#20a288"))
 dev.off()
 
+# initial processing
 CHIRSB.IWP2 <- subset(CHIRSB.IWP2, subset = nFeature_RNA > 200 & nFeature_RNA < 6000 & percent.mito < 10)
 CHIRSB.IWP2 <- NormalizeData(CHIRSB.IWP2, normalization.method = "LogNormalize", scale.factor = 10000)
 CHIRSB.IWP2 <- FindVariableFeatures(CHIRSB.IWP2, selection.method = "vst")
 CHIRSB.IWP2 <- ScaleData(CHIRSB.IWP2, features = rownames(CHIRSB.IWP2), vars.to.regress = c("percent.mito","nCount_RNA"))
-#saved temp
 CHIRSB.IWP2 <- RunPCA(CHIRSB.IWP2, features = VariableFeatures(CHIRSB.IWP2), dims = 50)
 CHIRSB.IWP2 <- JackStraw(CHIRSB.IWP2, num.replicate = 100, dims = 50)
 CHIRSB.IWP2 <- ScoreJackStraw(CHIRSB.IWP2, dims = 1:50)
@@ -32,7 +31,7 @@ JackStrawPlot(CHIRSB.IWP2, dims = 1:50)
 dev.off()
 
 
-# Fig. S2B, left panel
+# Supplemental Fig. 2B, left panel
 CHIRSB.IWP2 <- RunUMAP(CHIRSB.IWP2, dims = 1:50)
 pdf()
 DimPlot(CHIRSB.IWP2, reduction = "umap", pt.size = 1, group.by = "orig.ident", cols = c("#2a59b8","#e22e2f")) +
@@ -67,7 +66,7 @@ CHIRSB.IWP2.integrated <- RunUMAP(CHIRSB.IWP2.integrated, reduction = "pca", dim
 CHIRSB.IWP2.integrated <- FindNeighbors(CHIRSB.IWP2.integrated, reduction = "pca", dims = 1:50)
 CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.5)
 
-# Fig. 1A (also Fig. S2B, right panel)
+# Fig. 1A (also Supplemental Fig. 2B, right panel)
 pdf()
 DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "orig.ident", cols = c("#e22e2f","#2a59b8"), order = "CHIRSB") +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20))
@@ -75,17 +74,48 @@ DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "ori
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + NoLegend()
 dev.off()
 
-# Fig. S2C
+# Supplemental Fig. 2C
 pdf()
 DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "nFeature_RNA") + NoLegend() + scale_color_viridis(discrete=TRUE, direction = -1) +
-theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank()) + NoLegend()
 DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "nCount_RNA") + NoLegend() + scale_color_viridis(discrete=TRUE, direction = -1) +
-theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank()) + NoLegend()
 DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "percent.mito") + NoLegend() + scale_color_viridis(discrete=TRUE, direction = -1) +
-theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank()) + NoLegend()
 dev.off()
 
 # Fig. 1B
+DefaultAssay(CHIRSB.IWP2.integrated) <- "integrated"
+CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.0)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.1)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.2)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.3)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.4)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.5)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.6)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.7)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.8)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.9)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.1)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.2)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.3)
+  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.4)
+pdf(width = 8, height = 14)
+clustree(CHIRSB.IWP2.integrated, prefix = "integrated_snn_res.", layout = "sugiyama", use_core_edges = FALSE)
+clustree(CHIRSB.IWP2.integrated, prefix = "integrated_snn_res.", layout = "sugiyama", use_core_edges = FALSE, node_colour = "sc3_stability") + scale_color_viridis(option="plasma")
+dev.off()
+Idents(CHIRSB.IWP2.integrated) <- "integrated_snn_res.1"
+CHIRSB.IWP2.integrated <- RenameIdents(CHIRSB.IWP2.integrated,'0'='19')
+CHIRSB.IWP2.integrated[["newclusters"]] <- Idents(CHIRSB.IWP2.integrated)
+pdf()
+DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "newclusters") +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "newclusters") +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank()) + NoLegend()
+dev.off()
+
+# Fig. 1C
 Idents(CHIRSB.IWP2.integrated) <- "orig.ident"
 WNTi <- WhichCells(CHIRSB.IWP2.integrated, idents = "IWP2")
 WNTd <- WhichCells(CHIRSB.IWP2.integrated, idents = "CHIRSB")
@@ -107,41 +137,13 @@ FeaturePlot(CHIRSB.IWP2.integrated, cells = WNTd, features = c("cdx_features1"),
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
 dev.off()
 
-# Fig. S2D
-DefaultAssay(CHIRSB.IWP2.integrated) <- "integrated"
-CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.0)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.1)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.2)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.3)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.4)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.5)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.6)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.7)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.8)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 0.9)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.1)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.2)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.3)
-  CHIRSB.IWP2.integrated <- FindClusters(CHIRSB.IWP2.integrated, resolution = 1.4)
-pdf(width = 8, height = 14)
-clustree(CHIRSB.IWP2.integrated, prefix = "integrated_snn_res.", layout = "sugiyama", use_core_edges = FALSE)
-clustree(CHIRSB.IWP2.integrated, prefix = "integrated_snn_res.", layout = "sugiyama", use_core_edges = FALSE, node_colour = "sc3_stability") + scale_color_viridis(option="plasma")
-dev.off()
-pdf()
-DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "integrated_snn_res.1") +
-theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
-DimPlot(CHIRSB.IWP2.integrated, reduction = "umap", pt.size = 1, group.by = "integrated_snn_res.1") +
-theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank()) + NoLegend()
-dev.off()
-
 # Supplementary table 1
 DefaultAssay(CHIRSB.IWP2.integrated) <- "RNA"
 Idents(CHIRSB.IWP2.integrated) <- "integrated_snn_res.1"
 markers <- FindAllMarkers(CHIRSB.IWP2.integrated, logfc = 0.176)
 write.table(markers, file="all-markers.txt", sep="\t")
 
-# Fig. S2E
+# Supplementary Fig. 2D
 pdf()
 plot(density(CHIRSB.IWP2.integrated@assays$RNA@data['CDX4',]))
 abline(v=0.2)
