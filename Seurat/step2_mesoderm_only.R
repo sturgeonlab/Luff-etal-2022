@@ -283,7 +283,7 @@ meso[["newclusters"]] <- Idents(meso)
 Idents(meso) <- "newclusters"
 
 
-# Fig. 1Ci
+# Fig. 1Di
 pdf()
 DimPlot(meso, reduction = "umap", pt.size = 2, group.by = "newclusters", order = c("9","8","7","6","5","4","3","2","1"),
 cols = c("#f8766d","#db72fb","#00b9e3","#00ba38","#d39200","#ff61c3","#619cff","#00c19f","#93aa00")) +
@@ -294,7 +294,7 @@ theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 2
 dev.off()
 
 
-# Fig. 1Cii,iv
+# Fig. 1Dii,iii
 DefaultAssay(meso) <- "RNA"
 pdf()
 FeaturePlot(meso, features = c("ALDH1A2"), reduction = "umap", order = TRUE, pt.size = 2) + scale_color_viridis(direction = -1) +
@@ -307,23 +307,9 @@ FeaturePlot(meso, features = c("CXCR4"), reduction = "umap", order = TRUE, pt.si
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + NoLegend() + ggtitle(element_blank())
 dev.off()
 
-# Fig. 1Ciii
-Idents(meso) <- "newclusters"
-my_levels <- c("1","2","3","4","5","6","7","8","9")
-levels(meso) <- my_levels
-pdf(width = 2, height = 4.25)
-VlnPlot(meso, features = c("ALDH1A2","TEK"), assay = "RNA", log = TRUE, pt.size = 0.25, ncol = 1)
-dev.off()
-
 # Supplementary Table 2A
 avg <- AverageExpression(meso, assay = "RNA")
 write.table(avg, file="table2a.txt", sep="\t")
-pdf()
-  plot(density(meso@assays$RNA@data['ALDH1A2',]))
-  abline(v=0.15)
-  plot(density(meso@assays$RNA@data['TEK',]))
-  abline(v=0.2)
-  dev.off()
 
 # Supplementary Table 2B
 meso.markers <- FindAllMarkers(meso, only.pos = TRUE, logfc = 0.176)
@@ -337,17 +323,4 @@ meso <- SetIdent(meso, cells = aldh.pos, value = "aldh.pos")
 aldh.markers <- FindAllMarkers(meso, only.pos = TRUE, logfc = 0.176)
 write.table(aldh.markers, file="table2c.txt", sep="\t")
 
-# Supplementary Table 2D
-sub <- SubsetData(meso, subset.name = "newclusters", accept.value = c("1","2","3","4","7","8","9"))
-pdf()
-plot(density(sub@assays$RNA@data['ALDH1A2',]))
-abline(v=0.15)
-dev.off()
-aldh.pos <- WhichCells(sub, expression = ALDH1A2 >= 0.15)
-aldh.neg <- WhichCells(sub, expression = ALDH1A2 < 0.15)
-sub <- SetIdent(sub, cells = aldh.neg, value = "aldh.neg")
-sub <- SetIdent(sub, cells = aldh.pos, value = "aldh.pos")
-aldh.markers <- FindAllMarkers(sub, only.pos = TRUE, logfc = 0.176)
-write.table(aldh.markers, file="table2d.txt", sep="\t")
-
-save(meso, file = "WNTd.mesoderm.only2.RData")
+save(meso, file = "WNTd.mesoderm.only.RData")
