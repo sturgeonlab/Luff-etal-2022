@@ -191,26 +191,38 @@ Idents(CH) <- "RNA_snn_res.0.2"
   CH[["types"]] <- Idents(CH)
 
 
-# Fig. S2Eii,iii
-Idents(CH) <- "types"
-my_levels <- c("Mesoderm","Endoderm","Ectoderm","Pluripotent")
-levels(CH) <- my_levels
+# Fig. S2Eii
 pdf()
 FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
 FeaturePlot(CH, features = c("KDR"), pt.size = 1.5, reduction = "umap", min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank()) + NoLegend()
-DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Pluripotent","Ectoderm","Endoderm","Mesoderm"), cols = c("#eb0006","#fb6d92","#6b8ddd","#e5c321")) +
+dev.off()
+
+# Fig. S2Fi
+pdf()
+DimPlot(CH, reduction = "umap", pt.size = 1, order = c("Mesoderm","Pluripotent","Ectoderm","Endoderm"), cols = c("#00D142","#6D75F2","#EDC834","#E3312D")) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20))
-DimPlot(CH, reduction = "umap", pt.size = 1.5, order = c("Pluripotent","Ectoderm","Endoderm","Mesoderm"), cols = c("#eb0006","#fb6d92","#6b8ddd","#e5c321")) +
+DimPlot(CH, reduction = "umap", pt.size = 1, order = c("Mesoderm","Pluripotent","Ectoderm","Endoderm"), cols = c("#00D142","#6D75F2","#EDC834","#E3312D")) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + NoLegend()
 dev.off()
 
-# Fig. S2Eiv
+# Fig. S2Fii
+Idents(CH) <- "types"
+my_levels <- c("Mesoderm","Endoderm","Ectoderm","Pluripotent")
+levels(CH) <- my_levels
 features = c("SOX2","POU5F1","NANOG","TFAP2A","DLX5","KRT7",
 "FOXA2","SOX17","HNF1B","MEST","KDR","MESP1")
 pdf(width = 7, height = 2.75) #make it a little taller to get full scale bar
 DotPlot(CH, features = features) + RotatedAxis() + scale_colour_gradient2(low="#003cd5", mid="white", high="#f0260a")
+dev.off()
+
+# Fig. S2Fiii
+Idents(CH) <- "types"
+my_levels <- c("Pluripotent","Ectoderm","Endoderm","Mesoderm")
+levels(CH) <- my_levels
+pdf()
+VlnPlot(CH, features = "KDR", cols = c("#EDC834","#6D75F2","#00D142","#E3312D"), pt.size = 0.25)
 dev.off()
 
 save(CH, file = "WNTd.only.RData")
