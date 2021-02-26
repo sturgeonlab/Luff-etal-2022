@@ -280,7 +280,7 @@ write.table(genes.FC.7, file = "genes.FC.7.csv", sep = ",", row.names = FALSE)
 save.image(file = "tyWNTd-transfer-integrated.RData")
 
 
-#GSEA parameters
+#GSEA parameters unique to this analysis and differ from broader described methodology
 gsea-cli.sh GSEAPreranked -gmx /set.gmx.txt -collapse No_Collapse -mode Max_probe -norm meandiv
 -nperm 1000 -rnk /rank1.rnk.txt -scoring_scheme weighted -rpt_label my_analysis -create_svgs false
 -include_only_symbols true -make_sets true -plot_top_x 20 -rnd_seed timestamp -set_max 5000 -set_min 15
