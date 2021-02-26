@@ -16,11 +16,6 @@ bck_res <- results(DESeq.ds)
 res_ordered <- bck_res[order(bck_res$padj),]
 write.csv(res_ordered, file="CXCR4neg-pos.csv")
 
-len <- read.table("len.txt", header = TRUE)
-mcols(DESeq.ds) <- cbind(mcols(DESeq.ds), len)
-fpkm <- fpkm(DESeq.ds)
-write.csv(fpkm, file = "fpkm.csv")
-
 vsd <- vst(DESeq.ds, blind = FALSE)
 plotPCA(vsd, intgroup = c("condition"))
 pcaData <- plotPCA(vsd, intgroup = c("condition"), returnData = TRUE)
