@@ -43,6 +43,11 @@ pheatmap(sampleDistMatrix_corr, clustering_distance_rows=sampleDists_corr,cluste
 dev.off()
 
 
+# GSEA parameters for Supplementary Fig. 8Aiii
+gsea-cli.sh GSEAPreranked -gmx ftp.broadinstitute.org://pub/gsea/gene_sets/c5.go.bp.v7.2.symbols.gmt -collapse No_Collapse -mode Max_probe -norm meandiv 
+-nperm 1000 -rnk /FigS8Aiii.rnk.txt -scoring_scheme weighted -rpt_label rad.rai -create_svgs false -include_only_symbols true -make_sets true -plot_top_x 20 
+-rnd_seed timestamp -set_max 500 -set_min 5 -zip_report false -out /output
+
 
 
 > sessionInfo()
