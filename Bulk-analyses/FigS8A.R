@@ -23,10 +23,6 @@ plotPCA(vsd, intgroup = c("condition"))
 pcaData <- plotPCA(vsd, intgroup = c("condition"), returnData = TRUE)
 write.csv(pcaData,file = "pcaData.csv")
 
-len <- read.table("len.txt", header = TRUE)
-mcols(DESeq.ds) <- cbind(mcols(DESeq.ds), len)
-fpkm <- fpkm(DESeq.ds)
-write.csv(fpkm, file = "fpkm.csv")
 
 # Supplementary Fig. 8Aii
 wntd <- bckCountTable[,4:9]
