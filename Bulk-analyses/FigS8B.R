@@ -32,6 +32,12 @@ bck_res <- results(DESeq.ds)
 res_ordered <- bck_res[order(bck_res$padj),]
 write.csv(res_ordered, file="RAd-CD34.csv")
 
+# GSEA parameters for Supplementary Fig. 8Bii
+gsea-cli.sh GSEAPreranked -gmx ftp.broadinstitute.org://pub/gsea/gene_sets/c5.go.bp.v7.2.symbols.gmt -collapse No_Collapse -mode Max_probe -norm meandiv 
+-nperm 1000 -rnk /AGM-RAi.rnk.txt -scoring_scheme weighted -rpt_label AGM.RAi -create_svgs false -include_only_symbols true -make_sets true -plot_top_x 20 
+-rnd_seed timestamp -set_max 500 -set_min 5 -zip_report false -out /output
+
+
 
 > sessionInfo()
 R version 3.6.2 (2019-12-12)
