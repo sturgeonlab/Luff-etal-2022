@@ -138,13 +138,17 @@ save(zeng, file="zeng.new.RData")
 
 # set up reference dataset
 name = "HE_Endo"
-bulk <- read.table("bulkseq-input.txt", header=T, sep="\t", row.names = 1)
+bulk <- read.table("log-fpkm.txt", header=T, sep="\t")
+x = bulk[,1]
+loss = bulk[,-1]
+rownames(loss) = make.names(x, unique = TRUE)
+bulk <- loss
 bulk = as.matrix(bulk)
 types = list("IWP","RAi","RAd","CD184")
 types = as.character(types)
 main_types = list("HE","HE","HE","Endo")
 main_types = as.character(main_types)
-myref = list(data = bulk, main_types=main_types, types=types)
+myref = list(data = bulk, main_types = main_types, types = types)
 myref[["de.genes"]] = CreateVariableGeneSet(bulk,types,200)
 myref[["de.genes.main"]] = CreateVariableGeneSet(bulk,main_types,300)
 
@@ -223,8 +227,10 @@ late.AEC.cells <- rownames(late.AEC)
 order <- c(early.AEC.cells,early.HEC.cells,late.AEC.cells,late.HEC.cells)
 
 # Fig. 3Bi
-pdf(width = 8, height = 2)
+tiff(width = 4800, height = 1000)
 SingleR.DrawHeatmap(obj, top.n = Inf, clusters = obj$names, order.by.clusters = FALSE, cells_order = order)
+dev.off()
+tiff(width = 4800, height = 1000)
 SingleR.DrawHeatmap(obj, top.n = Inf, clusters = obj$names2, order.by.clusters = FALSE, cells_order = order)
 dev.off()
 
@@ -250,16 +256,20 @@ zeng[["newestlabels"]] <- Idents(zeng)
 Idents(sub) <- "newlabels"
 sub <- SetIdent(sub, cells = early.AEC.cells, value = "group1")
 sub <- SetIdent(sub, cells = late.AEC.cells, value = "group4")
-group2 <- early.HEC[1:46,]
+
+group2 <- early.HEC[1:42,]
 group2.cells <- rownames(group2)
 sub <- SetIdent(sub, cells = group2.cells, value = "group2")
-group3 <- early.HEC[47:56,]
+
+group3 <- early.HEC[43:56,]
 group3.cells <- rownames(group3)
 sub <- SetIdent(sub, cells = group3.cells, value = "group3")
-group5 <- late.HEC[1:41,]
+
+group5 <- late.HEC[1:32,]
 group5.cells <- rownames(group5)
 sub <- SetIdent(sub, cells = group5.cells, value = "group5")
-group6 <- late.HEC[42:99,]
+
+group6 <- late.HEC[33:99,]
 group6.cells <- rownames(group6)
 sub <- SetIdent(sub, cells = group6.cells, value = "group6")
 sub[["groups"]] <- Idents(sub)
