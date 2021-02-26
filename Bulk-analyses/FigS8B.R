@@ -37,6 +37,10 @@ gsea-cli.sh GSEAPreranked -gmx ftp.broadinstitute.org://pub/gsea/gene_sets/c5.go
 -nperm 1000 -rnk /AGM-RAi.rnk.txt -scoring_scheme weighted -rpt_label AGM.RAi -create_svgs false -include_only_symbols true -make_sets true -plot_top_x 20 
 -rnd_seed timestamp -set_max 500 -set_min 5 -zip_report false -out /output
 
+len <- read.table("len.txt", header = TRUE)
+mcols(DESeq.ds) <- cbind(mcols(DESeq.ds), len)
+fpkm <- fpkm(DESeq.ds)
+write.csv(fpkm, file = "fpkm.csv")
 
 
 > sessionInfo()
