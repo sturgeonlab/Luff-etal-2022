@@ -12,7 +12,7 @@ rep("NEG",3),rep("POS",3),rep("WNTi HE",3),rep("WNTd HE",3),rep("RAi HE",3),rep(
 rep("AGM CD34",1),rep("AGM HSPC",1),rep("RAi HPC",3),rep("RAd HPC",3))))
 bckCDS <- DESeqDataSetFromMatrix(countData = bckCountTable, colData = samples, design = ~ condition)
 DESeq.ds <- DESeq(bckCDS)
-len <- read.table("len.txt", header = TRUE)
-mcols(DESeq.ds) <- cbind(mcols(DESeq.ds), len)
+len <- read.table("len.txt", header = TRUE) 
+mcols(DESeq.ds) <- cbind(mcols(DESeq.ds), len) #adding gene lengths
 fpkm <- fpkm(DESeq.ds)
 write.csv(fpkm, file = "fpkm.csv")
