@@ -26,7 +26,7 @@ write.csv(res_ordered, file="RAi-CD34.csv")
 RAd.34 <- bckCountTable[,4:7]
 colnames_bck <- colnames(RAd.34)
 samples <- data.frame(row.names = colnames_bck, condition = as.factor(c(rep("RAd",3),rep("CD34",1))))
-bckCDS <- DESeqDataSetFromMatrix(countData = RAi.34, colData = samples, design = ~ condition)
+bckCDS <- DESeqDataSetFromMatrix(countData = RAd.34, colData = samples, design = ~ condition)
 DESeq.ds <- DESeq(bckCDS)
 bck_res <- results(DESeq.ds)
 res_ordered <- bck_res[order(bck_res$padj),]
