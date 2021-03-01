@@ -115,13 +115,17 @@ vitro <- WhichCells(tymeso, idents = "hPSC")
 CDX_features <- list(c("CDX1","CDX2","CDX4"))
 tymeso <- AddModuleScore(tymeso, features = CDX_features, name = 'CDX_features')
 pdf()
+FeaturePlot(tymeso, cells = embryo, features = c("CDX_features1"), split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
+FeaturePlot(tymeso, cells = vitro, features = c("CDX_features1"), split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
+theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
 FeaturePlot(tymeso, cells = embryo, features = "ALDH1A2", split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
 FeaturePlot(tymeso, cells = vitro, features = "ALDH1A2", split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
-FeaturePlot(tymeso, cells = embryo, features = c("CDX_features1"), split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
+FeaturePlot(tymeso, cells = embryo, features = "CXCR4", split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
-FeaturePlot(tymeso, cells = vitro, features = c("CDX_features1"), split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
+FeaturePlot(tymeso, cells = vitro, features = "CXCR4", split.by = "exp", reduction = "umap", pt.size = 2.25, min.cutoff = 0, order = TRUE) + scale_color_viridis(direction = -1) +
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
 dev.off()
 
