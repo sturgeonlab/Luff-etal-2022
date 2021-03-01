@@ -328,6 +328,10 @@ meso.markers <- FindAllMarkers(meso, only.pos = TRUE, logfc = 0.176)
 write.table(meso.markers, file="table2b.txt", sep="\t")
 
 # Supplementary Table 2C
+pdf()
+plot(density(meso@assays$RNA@data['ALDH1A2',]))
+abline(v=0.15)
+dev.off()
 aldh.pos <- WhichCells(meso, expression = ALDH1A2 >= 0.15)
 aldh.neg <- WhichCells(meso, expression = ALDH1A2 < 0.15)
 meso <- SetIdent(meso, cells = aldh.neg, value = "aldh.neg")
@@ -336,3 +340,6 @@ aldh.markers <- FindAllMarkers(meso, only.pos = TRUE, logfc = 0.176)
 write.table(aldh.markers, file="table2c.txt", sep="\t")
 
 save(meso, file = "WNTd.mesoderm.only.RData")
+
+
+
