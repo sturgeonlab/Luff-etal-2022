@@ -19,8 +19,9 @@ samples
 bckCDS <- DESeqDataSetFromMatrix(countData = bckCountTable, colData = samples, design = ~ condition)
 DESeq.ds <- DESeq(bckCDS)
 vsd <- vst(DESeq.ds, blind = FALSE)
-plotPCA(vsd, intgroup = c("condition"))
-pcaData <- plotPCA(vsd, intgroup = c("condition"), returnData = TRUE)
+DESeq.ds_assay_corr <- limma::removeBatchEffect(assay(vsd),vsd$batch)
+assay(vsd) <- DESeq.ds_assay_corr
+pcaData <- plotPCA(vsd, returnData = TRUE)
 write.csv(pcaData,file = "pcaData.csv")
 
 
