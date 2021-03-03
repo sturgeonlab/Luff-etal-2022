@@ -31,10 +31,12 @@ colnames_bck <- colnames(wntd)
 samples <- data.frame(row.names = colnames_bck,
 condition = as.factor(c(rep("RAi HE",3),rep("RAd HE",3))),
 batch = as.factor(c(rep("1",1),rep("2",1),rep("3",1),rep("1",1),rep("2",1),rep("3",1))))
-bckCDS <- DESeqDataSetFromMatrix(countData = wntd, colData = samples, design = ~condition)
+bckCDS <- DESeqDataSetFromMatrix(countData = wntd, colData = samples, design = ~ batch + condition)
 DESeq.ds <- DESeq(bckCDS)
-vsd <- vst(DESeq.ds, blind=FALSE)
+
+vsd <- vst(DESeq.ds, blind = FALSE)
 DESeq.ds_assay_corr <- limma::removeBatchEffect(assay(vsd),vsd$batch)
+assay(vsd) <- DESeq.ds_assay_corr
 sampleDists_corr <- dist(t(DESeq.ds_assay_corr))
 sampleDistMatrix_corr <- as.matrix(sampleDists_corr)
 rownames(sampleDistMatrix_corr) <- paste(rownames(sampleDistMatrix_corr))
@@ -44,10 +46,16 @@ pheatmap(sampleDistMatrix_corr, clustering_distance_rows=sampleDists_corr,cluste
 dev.off()
 
 
+# Supplementary Table 5B
+bck_res <- results(DESeq.ds)
+res_ordered <- bck_res[order(bck_res$padj),]
+write.csv(res_ordered, file="RAd-RAi.csv")
+
 # GSEA parameters for Supplementary Fig. 8Aiii
 gsea-cli.sh GSEAPreranked -gmx ftp.broadinstitute.org://pub/gsea/gene_sets/c5.go.bp.v7.2.symbols.gmt -collapse No_Collapse -mode Max_probe -norm meandiv 
 -nperm 1000 -rnk /FigS8Aiii.rnk.txt -scoring_scheme weighted -rpt_label rad.rai -create_svgs false -include_only_symbols true -make_sets true -plot_top_x 20 
 -rnd_seed timestamp -set_max 500 -set_min 5 -zip_report false -out /output
+
 
 
 
@@ -101,4 +109,4 @@ loaded via a namespace (and not attached):
 [64] Hmisc_4.3-1            stringi_1.4.6          Rcpp_1.0.3            
 [67] geneplotter_1.62.0     vctrs_0.3.4            rpart_4.1-15          
 [70] acepack_1.4.1          png_0.1-7              tidyselect_1.1.0      
-[73] xfun_0.12  
+[73] xfun_0.12
