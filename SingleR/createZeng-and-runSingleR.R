@@ -307,12 +307,30 @@ pdf(width = 2.5, height = 10)
 VlnPlot(sub, features = c("CXCR4","GJA4","GJA5","HEY2","DLL4"), log = TRUE, pt.size = 0.25, ncol = 1)
 dev.off()
 
+
 # Supplementary Table 6A
+write.table(myref$de.genes$CD184$IWP, file="singler.genes.184-IWP.txt", sep="\t")
+write.table(myref$de.genes$RAd$RAi, file="singler.genes.RAd-RAi.txt", sep="\t")
+write.table(myref$de.genes$CD184$RAd, file="singler.genes.184-RAd.txt", sep="\t")
+write.table(myref$de.genes$CD184$RAi, file="singler.genes.184-RAi.txt", sep="\t")
+write.table(myref$de.genes$IWP$CD184, file="singler.genes.IWP-184.txt", sep="\t")
+write.table(myref$de.genes$IWP$RAd, file="singler.genes.IWP-RAd.txt", sep="\t")
+write.table(myref$de.genes$IWP$RAi, file="singler.genes.IWP-RAi.txt", sep="\t")
+write.table(myref$de.genes$RAd$CD184, file="singler.genes.RAd-184.txt", sep="\t")
+write.table(myref$de.genes$RAd$IWP, file="singler.genes.RAd-IWP.txt", sep="\t")
+write.table(myref$de.genes$RAi$CD184, file="singler.genes.RAi-184.txt", sep="\t")
+write.table(myref$de.genes$RAi$IWP, file="singler.genes.RAi-IWP.txt", sep="\t")
+write.table(myref$de.genes$RAi$RAd, file="singler.genes.RAi-RAd.txt", sep="\t")
+write.table(myref$de.genes.main$Endo$HE, file="singler.genes.Endo-HE.txt", sep="\t")
+write.table(myref$de.genes.main$HE$Endo, file="singler.genes.HE-Endo.txt", sep="\t")
+
+
+# Supplementary Table 6B
 Idents(sub) <- "groups"
 markers <- FindAllMarkers(sub, logfc = 0.176)
 write.table(markers, file = "group.markers.txt", sep = "\t")
 
-# Supplementary Table 6B
+# Supplementary Table 6C
 avg <- AverageExpression(sub, assay = "RNA")
 write.table(avg, file = "avg.txt", sep = "\t")
 
