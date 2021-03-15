@@ -3,6 +3,9 @@ library("ggplot2")
 library("pheatmap")
 library("limma")
 
+install.packages("sva_3.39.0.tar.gz", repos = NULL, type="source")
+library("sva")
+
 # Supplementary Fig. 8Ai
 bckCountTable <- read.table("FigS8A.txt", header = TRUE)
 x = bckCountTable[,1]
@@ -13,15 +16,17 @@ bckCountTable <- loss
 colnames_bck <- colnames(bckCountTable)
 samples <- data.frame(row.names = colnames_bck,
 condition = as.factor(c(rep("WNTi HE",3),rep("RAi HE",3),rep("RAd HE",3),rep("RAi HPC",3),rep("RAd HPC",3))),
-batch = as.factor(c(rep("4",1),rep("5",1),rep("6",1),rep("1",1),rep("2",1),rep("3",1),rep("1",1),rep("2",1),rep("3",1),
+batch = as.factor(c(rep("4",1),rep("4",1),rep("4",1),rep("1",1),rep("2",1),rep("3",1),rep("1",1),rep("2",1),rep("3",1),
 rep("1",1),rep("2",1),rep("3",1),rep("1",1),rep("2",1),rep("3",1))))
 samples
-bckCDS <- DESeqDataSetFromMatrix(countData = bckCountTable, colData = samples, design = ~ condition)
+bckCountTable_corr <- ComBat_seq(as.matrix(bckCountTable),samples$batch)
+bckCDS <- DESeqDataSetFromMatrix(countData = bckCountTable_corr, colData = samples, design = ~ condition)
 DESeq.ds <- DESeq(bckCDS)
-vsd <- vst(DESeq.ds, blind = FALSE)
-DESeq.ds_assay_corr <- limma::removeBatchEffect(assay(vsd),vsd$batch)
-assay(vsd) <- DESeq.ds_assay_corr
-pcaData <- plotPCA(vsd, returnData = TRUE)
+DESeq.rlog <- rlogTransformation(DESeq.ds, blind = TRUE)
+pdf()
+plotPCA(DESeq.rlog,ntop=300)
+dev.off()
+pcaData <- plotPCA(DESeq.rlog,ntop=300, returnData = TRUE)
 write.csv(pcaData,file = "pcaData.csv")
 
 
@@ -49,13 +54,13 @@ dev.off()
 # Supplementary Table 5B
 bck_res <- results(DESeq.ds)
 res_ordered <- bck_res[order(bck_res$padj),]
-write.csv(res_ordered, file="RAd-RAi.csv")
+write.csv(res_ordered, file="Table5B.csv")
+
 
 # GSEA parameters for Supplementary Fig. 8Aiii
 gsea-cli.sh GSEAPreranked -gmx ftp.broadinstitute.org://pub/gsea/gene_sets/c5.go.bp.v7.2.symbols.gmt -collapse No_Collapse -mode Max_probe -norm meandiv 
 -nperm 1000 -rnk /FigS8Aiii.rnk.txt -scoring_scheme weighted -rpt_label rad.rai -create_svgs false -include_only_symbols true -make_sets true -plot_top_x 20 
 -rnd_seed timestamp -set_max 500 -set_min 5 -zip_report false -out /output
-
 
 
 
@@ -76,22 +81,24 @@ attached base packages:
 [8] methods   base     
 
 other attached packages:
- [1] limma_3.40.6                pheatmap_1.0.12            
- [3] ggplot2_3.3.2               DESeq2_1.24.0              
- [5] SummarizedExperiment_1.14.1 DelayedArray_0.10.0        
- [7] BiocParallel_1.18.1         matrixStats_0.55.0         
- [9] Biobase_2.44.0              GenomicRanges_1.36.1       
-[11] GenomeInfoDb_1.20.0         IRanges_2.18.3             
-[13] S4Vectors_0.22.1            BiocGenerics_0.30.0        
+ [1] sva_3.39.0                  genefilter_1.66.0          
+ [3] mgcv_1.8-31                 nlme_3.1-144               
+ [5] limma_3.40.6                pheatmap_1.0.12            
+ [7] ggplot2_3.3.2               DESeq2_1.24.0              
+ [9] SummarizedExperiment_1.14.1 DelayedArray_0.10.0        
+[11] BiocParallel_1.18.1         matrixStats_0.55.0         
+[13] Biobase_2.44.0              GenomicRanges_1.36.1       
+[15] GenomeInfoDb_1.20.0         IRanges_2.18.3             
+[17] S4Vectors_0.22.1            BiocGenerics_0.30.0        
 
 loaded via a namespace (and not attached):
- [1] bit64_0.9-7            splines_3.6.2          Formula_1.2-3         
- [4] latticeExtra_0.6-29    blob_1.2.1             GenomeInfoDbData_1.2.1
- [7] pillar_1.4.3           RSQLite_2.2.0          backports_1.1.5       
-[10] lattice_0.20-40        glue_1.4.2             digest_0.6.24         
-[13] RColorBrewer_1.1-2     XVector_0.24.0         checkmate_2.0.0       
-[16] colorspace_1.4-1       htmltools_0.4.0        Matrix_1.2-18         
-[19] XML_3.99-0.3           pkgconfig_2.0.3        genefilter_1.66.0     
+ [1] edgeR_3.28.1           bit64_0.9-7            splines_3.6.2         
+ [4] Formula_1.2-3          latticeExtra_0.6-29    blob_1.2.1            
+ [7] GenomeInfoDbData_1.2.1 pillar_1.4.3           RSQLite_2.2.0         
+[10] backports_1.1.5        lattice_0.20-40        glue_1.4.2            
+[13] digest_0.6.24          RColorBrewer_1.1-2     XVector_0.24.0        
+[16] checkmate_2.0.0        colorspace_1.4-1       htmltools_0.4.0       
+[19] Matrix_1.2-18          XML_3.99-0.3           pkgconfig_2.0.3       
 [22] zlibbioc_1.30.0        purrr_0.3.3            xtable_1.8-4          
 [25] scales_1.1.0           jpeg_0.1-8.1           htmlTable_1.13.3      
 [28] tibble_3.0.4           annotate_1.62.0        farver_2.0.3          
@@ -109,4 +116,4 @@ loaded via a namespace (and not attached):
 [64] Hmisc_4.3-1            stringi_1.4.6          Rcpp_1.0.3            
 [67] geneplotter_1.62.0     vctrs_0.3.4            rpart_4.1-15          
 [70] acepack_1.4.1          png_0.1-7              tidyselect_1.1.0      
-[73] xfun_0.12
+[73] xfun_0.12 
