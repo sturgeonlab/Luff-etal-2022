@@ -36,13 +36,12 @@ colnames_bck <- colnames(wntd)
 samples <- data.frame(row.names = colnames_bck,
 condition = as.factor(c(rep("RAi HE",3),rep("RAd HE",3))),
 batch = as.factor(c(rep("1",1),rep("2",1),rep("3",1),rep("1",1),rep("2",1),rep("3",1))))
-bckCDS <- DESeqDataSetFromMatrix(countData = wntd, colData = samples, design = ~ batch + condition)
+wntd_corr <- ComBat_seq(as.matrix(wntd),samples$batch)
+bckCDS <- DESeqDataSetFromMatrix(countData = wntd_corr, colData = samples, design = ~ condition)
 DESeq.ds <- DESeq(bckCDS)
-
-vsd <- vst(DESeq.ds, blind = FALSE)
-DESeq.ds_assay_corr <- limma::removeBatchEffect(assay(vsd),vsd$batch)
-assay(vsd) <- DESeq.ds_assay_corr
-sampleDists_corr <- dist(t(DESeq.ds_assay_corr))
+DESeq.rlog <- rlogTransformation(DESeq.ds, blind = TRUE)
+mat <- assay(DESeq.rlog)
+sampleDists_corr <- dist(t(mat))
 sampleDistMatrix_corr <- as.matrix(sampleDists_corr)
 rownames(sampleDistMatrix_corr) <- paste(rownames(sampleDistMatrix_corr))
 colnames(sampleDistMatrix_corr) <- paste(colnames(sampleDistMatrix_corr))
@@ -59,7 +58,7 @@ write.csv(res_ordered, file="Table5B.csv")
 
 # GSEA parameters for Supplementary Fig. 8Aiii
 gsea-cli.sh GSEAPreranked -gmx ftp.broadinstitute.org://pub/gsea/gene_sets/c5.go.bp.v7.2.symbols.gmt -collapse No_Collapse -mode Max_probe -norm meandiv 
--nperm 1000 -rnk /FigS8Aiii.rnk.txt -scoring_scheme weighted -rpt_label rad.rai -create_svgs false -include_only_symbols true -make_sets true -plot_top_x 20 
+-nperm 1000 -rnk /Table5C.rnk.txt -scoring_scheme weighted -rpt_label rad.rai -create_svgs false -include_only_symbols true -make_sets true -plot_top_x 20 
 -rnd_seed timestamp -set_max 500 -set_min 5 -zip_report false -out /output
 
 
