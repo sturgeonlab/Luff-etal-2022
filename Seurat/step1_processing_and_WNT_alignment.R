@@ -137,12 +137,6 @@ FeaturePlot(CHIRSB.IWP2.integrated, cells = WNTd, features = c("cdx_features1"),
 theme(axis.text.x = element_text(size = 18), axis.text.y = element_text(size = 20)) + ggtitle(element_blank())
 dev.off()
 
-# Supplementary table 1
-DefaultAssay(CHIRSB.IWP2.integrated) <- "RNA"
-Idents(CHIRSB.IWP2.integrated) <- "integrated_snn_res.1"
-markers <- FindAllMarkers(CHIRSB.IWP2.integrated, logfc = 0.176)
-write.table(markers, file="all-markers.txt", sep="\t")
-
 # Supplementary Fig. 2D
 pdf()
 plot(density(CHIRSB.IWP2.integrated@assays$RNA@data['CDX4',]))
@@ -165,5 +159,11 @@ plot_grid(
 p1, p2, p3, p4,
 nrow = 1)
 dev.off()
+
+# Supplementary table 1
+DefaultAssay(CHIRSB.IWP2.integrated) <- "RNA"
+Idents(CHIRSB.IWP2.integrated) <- "integrated_snn_res.1"
+markers <- FindAllMarkers(CHIRSB.IWP2.integrated, logfc = 0.176)
+write.table(markers, file="all-markers.txt", sep="\t")
 
 save(CHIRSB.IWP2.integrated, markers, file = "CHIRSB-IWP2-after-integration.RData")
