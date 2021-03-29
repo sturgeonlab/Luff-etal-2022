@@ -1,5 +1,6 @@
 library("DESeq2")
 
+#counts matrix included in this repository; has been filtered to only include protein-coding genes using Ensembl BioMart (GRCh38)
 bckCountTable <- read.table("fCount-master-coding.txt", header = TRUE)
 x = bckCountTable[,1]
 loss = bckCountTable[,-1]
