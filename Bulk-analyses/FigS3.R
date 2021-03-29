@@ -1,7 +1,6 @@
 library("DESeq2")
 library("ggplot2")
 library("limma")
-library("pheatmap")
 
 install.packages("sva_3.39.0.tar.gz", repos = NULL, type="source")
 library("sva")
