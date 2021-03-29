@@ -139,7 +139,7 @@ save(zeng, file="zeng.new.RData")
 
 # set up reference dataset
 name = "HE_Endo"
-bulk <- read.table("log-fpkm.txt", header=T, sep="\t")
+bulk <- read.table("log-fpkm-coding.txt", header=T, sep="\t")
 x = bulk[,1]
 loss = bulk[,-1]
 rownames(loss) = make.names(x, unique = TRUE)
@@ -274,25 +274,28 @@ Idents(sub) <- "newlabels"
 sub <- SetIdent(sub, cells = early.AEC.cells, value = "group1")
 sub <- SetIdent(sub, cells = late.AEC.cells, value = "group4")
 
-group2 <- early.HEC[1:42,]
+g23count <- nrow(early.HEC) #56
+g3count <- nrow(filter(early.HEC, HED == 1)) #12
+group2 <- early.HEC[1:44,]
 group2.cells <- rownames(group2)
 sub <- SetIdent(sub, cells = group2.cells, value = "group2")
-
-group3 <- early.HEC[43:56,]
+group3 <- early.HEC[45:56,]
 group3.cells <- rownames(group3)
 sub <- SetIdent(sub, cells = group3.cells, value = "group3")
 
-group5 <- late.HEC[1:32,]
+g56count <- nrow(late.HEC) #99
+g6count <- nrow(filter(late.HEC, HER == 1)) #54
+group5 <- late.HEC[1:45,]
 group5.cells <- rownames(group5)
 sub <- SetIdent(sub, cells = group5.cells, value = "group5")
-
-group6 <- late.HEC[33:99,]
+group6 <- late.HEC[46:99,]
 group6.cells <- rownames(group6)
 sub <- SetIdent(sub, cells = group6.cells, value = "group6")
 sub[["groups"]] <- Idents(sub)
 Idents(sub) <- "groups"
 my_levels <- c("group1","group2","group3","group4","group5","group6")
 levels(sub) <- my_levels
+
 
 # Fig. S9C
 zeng <- SetIdent(zeng, cells = early.AEC.cells, value = "group1")
@@ -312,6 +315,7 @@ DimPlot(zeng, reduction = "umap", group.by = "groups", pt.size = 2.25, cols = c(
 "#c7c7c7","#c7c7c7","#c7c7c7","#c7c7c7","#00b6eb","#f8766d","#c49a00","#a58aff","#53b400","#fb61d7"),
 order = c("group5","group6","group4","group3","group2","group1")) + theme(axis.title = element_text(size = 18), axis.text = element_text(size = 20)) + NoLegend()
 dev.off()
+
 
 # Supplementary Fig. 9Di
 sub <- ScaleData(sub, features = rownames(sub))
