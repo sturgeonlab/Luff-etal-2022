@@ -7,6 +7,7 @@ library(matrixStats)
 library(outliers)
 library(R.utils)
 library(pheatmap)
+library(plyr)
 
 library(devtools)
 install_github("sturgeonlab/Luff-etal-2021/SingleR/versioncontrolscripts")
@@ -235,12 +236,28 @@ SingleR.DrawHeatmap(obj, top.n = Inf, clusters = obj$names2, order.by.clusters =
 dev.off()
 
 # Fig. 3Bii
-write.table(datascoresrel, file="datascores.txt", sep="\t")
-write.table(order, file="cellorder.txt", sep="\t")
-write.table(type, file="type.txt", sep="\t")
-write.table(stage, file="stage.txt", sep="\t")
-# import into excel and use vlookup to match ordered barcodes with scores and type label
-# see cellorder-matched.txt for final result
+matched.scores <- data.frame("match" = order)
+relscores.IWP <- data.frame("IWP" = datascoresrel[,1])
+relscores.IWP$match <- rownames(relscores.IWP)
+matched.scores <- join(matched.scores, relscores.IWP, by = "match")
+relscores.RAi <- data.frame("HED" = datascoresrel[,2])
+relscores.RAi$match <- rownames(relscores.RAi)
+matched.scores <- join(matched.scores, relscores.RAi, by = "match")
+relscores.RAd <- data.frame("HER" = datascoresrel[,3])
+relscores.RAd$match <- rownames(relscores.RAd)
+matched.scores <- join(matched.scores, relscores.RAd, by = "match")
+relscores.EC <- data.frame("CD184" = datascoresrel[,4])
+relscores.EC$match <- rownames(relscores.EC)
+matched.scores <- join(matched.scores, relscores.EC, by = "match")
+colnames(type) <- "celltype"
+rownames(type) <- rownames(datascoresrel)
+type$match <- rownames(type)
+colnames(stage) <- "cellstage"
+rownames(stage) <- rownames(datascoresrel)
+stage$match <- rownames(stage)
+matched.scores <- join(matched.scores, type, by = "match")
+matched.scores <- join(matched.scores, stage, by = "match")
+head(matched.scores)
 
 
 # Fig. 3Ci
