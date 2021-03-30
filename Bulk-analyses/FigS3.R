@@ -1,8 +1,6 @@
 library("DESeq2")
 library("ggplot2")
 library("limma")
-
-install.packages("sva_3.39.0.tar.gz", repos = NULL, type="source")
 library("sva")
 
 bckCountTable <- read.table("FigS3D.txt", header = TRUE)
