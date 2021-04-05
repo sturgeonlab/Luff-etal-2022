@@ -4,12 +4,21 @@ library(cowplot)
 library(ggplot2)
 library(clustree)
 
-# load WNTd/WNTi data from GEO
+# can load data from GEO (GSE139850) in one of two ways: align FASTQ files using cellranger or import supplementary files
+# aligned fastq files
 CHIRSB.data <- Read10X(data.dir = "./CHIRSB/")
 CHIRSB <- CreateSeuratObject(CHIRSB.data, assay = "RNA", min.cells = 3, min.features = 200, project = "CHIRSB")
 IWP2.data <- Read10X(data.dir = "./IWP2/")
 IWP2 <- CreateSeuratObject(IWP2.data, assay = "RNA", min.cells = 3, min.features = 200, project = "IWP2")
 CHIRSB.IWP2 <- merge(CHIRSB,IWP2, project = "CHIRSB.IWP2")
+# supplementary files
+CHIRSB.IWP2.data <- read.table(file = "GSE139850_matrix.txt", sep = "\t")
+CHIRSB.IWP2.data <- as.data.frame(CHIRSB.IWP2.data)
+CHIRSB.IWP2.annot <- read.table(file = "GSE139850_metadata.txt", sep = "\t", header = TRUE)
+CHIRSB.IWP2 <- CreateSeuratObject(CHIRSB.IWP2.data, assay = "RNA", min.cells = 3, min.features = 200, project = "CHIRSB")
+CHIRSB.IWP2 <- AddMetaData(CHIRSB, metadata = CHIRSB.annot$orig.ident, col.name = "orig.ident")
+
+# add other metadata
 CHIRSB.IWP2[["percent.mito"]] <- PercentageFeatureSet(CHIRSB.IWP2, pattern = "^MT-")
 CHIRSB.IWP2[["merged"]] <- "CHIRSB.IWP2"
 
